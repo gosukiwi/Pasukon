@@ -1,0 +1,31 @@
+{
+  "name": "parser-combinator",
+  "version": "1.0.0",
+  "description": "Not a pure parser combinator, as it requires a lexing step for performance reasons. But it does allow you to define a language by combining parsers.",
+  "main": "index.js",
+  "directories": {
+    "lib": "lib",
+    "test": "test"
+  },
+  "dependencies": {
+    "chai": "^4.2.0"
+  },
+  "devDependencies": {
+    "eslint": "^7.7.0",
+    "eslint-config-standard": "^14.1.1",
+    "eslint-plugin-import": "^2.22.0",
+    "eslint-plugin-mocha": "^8.0.0",
+    "eslint-plugin-node": "^11.1.0",
+    "eslint-plugin-promise": "^4.2.1",
+    "eslint-plugin-standard": "^4.0.1",
+    "mocha": "^8.1.2",
+    "pegjs": "^0.10.0"
+  },
+  "scripts": {
+    "test": "mocha **/*-test.js",
+    "watch": "mocha --watch **/*-test.js",
+    "grammar": "pegjs -o lib/grammar.js lib/grammar.pegjs"
+  },
+  "author": "Federico Ramirez",
+  "license": "ISC"
+}
