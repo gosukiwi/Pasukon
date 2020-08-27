@@ -1,10 +1,32 @@
 # Pasukon
-Pasukon generates parsers based on a relatively easy to learn grammar.
-
-It's based on parser combinators, but it's not a pure parser combinator, as it
+Pasukon generates parsers based on a relatively easy to learn grammar. It's
+based on parser combinators, but it's not a pure parser combinator, as it
 requires a lexing step for performance reasons.
 
 It allows you to define your own lexer and combinators if needed.
+
+# Why
+I love [PEG.js](https://pegjs.org), but it's designed to be used for prototyping
+and, without caching, it really struggles to parse big grammars. Sometimes you
+can't use caching, particularly in indent-based grammars.
+
+[Jison](https://zaa.ch/jison/) is great, but the documentation is not that good
+and it's not easy to get started. Besides, it seems that it's not maintained
+anymore.
+
+[Nearley](https://nearley.js.org/) looks like the most mature solution at the
+moment, but it's also not easy to get started.
+
+Pasukon covers a middle ground. It's designed to be simple to learn, use and
+extend. Not the fastest, but fast enough.
+
+The grammar has a few simple rules and everything is built upon that. There's no
+left-recursion elimination or operator precedence. Instead, you need to define
+rules in the proper order (like PEG parsers).
+
+It's like the _Go_ programming language in a sense. Simple. So simple it might
+make some things tricky. But when it's the right tool for the job, it sure is
+great.
 
 # Concepts
 __Parser__: A function that takes an array of tokens as input and returns a
@@ -231,6 +253,45 @@ name
 
 The rule above will return `2` if it matches, because `$.foo` returns `2`.
 
+## Left Recursion
+You have to be careful when defining rules that they are not left-recursive.
+That means, a rule cannot match itself first. It needs to match other things
+first.
+
+```
+// left recursion infinite loop
+start
+  | start
+  ;
+
+// this is fine
+start
+  | :a start
+  ;
+```
+
+It also applies to rules that call other rules.
+
+```
+// left recursion infinite loop
+// because `RULE_B` starts with `RULE_A` and `RULE_A` starts with `RULE_B`
+RULE_A
+  | RULE_B
+  ;
+
+RULE_B
+  | RULE_A
+  ;
+```
+
+## Operator Precedence
+Say you want to match `+`, `-` first, then `*` and `/`. Here's an example on how
+to do it:
+
+```
+TODO
+```
+
 # Programmatic Usage
 
 ```javascript
@@ -262,6 +323,42 @@ combinators take an array of two parsers.
 
 They must implement a `parse` method and return a `Result` object. You can see
 example combinators in `./lib/parsers/combinators`.
+
+# Writing Efficient Parsers
+Each rule is executed from left to right, from top to bottom. If a particular
+branch fails, it retries from the beginning on another branch. Eg:
+
+```
+demo
+  | (many0 :a) then :b
+  | (many0 :a) then :c
+  ;
+```
+
+For the input `aaaac`, the parser will match four `a` tokens, then try `b`.
+Because it finds a `c` instead, it goes back all the way, scans four `a` again,
+then scans `c` and succeeds.
+
+A more efficient parser would be:
+
+```
+demo
+  | (many0 :a) then (:b or :c)
+  ;
+```
+
+Alternatively:
+
+```
+demo
+  | (many0 :a) then tail
+  ;
+
+tail
+  | :b
+  | :c
+  ;
+```
 
 # Development
 Regenerate the PEGJS grammar with
