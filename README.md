@@ -128,20 +128,42 @@ Below are all the unary parsers shortcuts:
 Putting it all together:
 
 ```
-statements
-  | *statement
-  ;
-
 statement
   | :A then ?(:B or :C)
   | :D
   ;
+
+statements
+  | *statement
+  ;
 ```
 
-# Available Combinators
+The last rule will be considered the __starting rule__. The grammar must be
+defined from more specific to more generic.
 
+# Available Combinators
 Unary combinators: `many0`; `many1`; `opt`.
 
-Binary combinators: `and`; `or`.
+Binary combinators: `then`; `or`.
 
 # Adding Your Own
+You can add your own combinators as such:
+
+```javascript
+const Parser = require('parser-combinator').Parser
+const parser = new Parser(lexer.lex('my input'))
+parser.addCombinator('combinatorName', MyCombinatorClass)
+```
+
+# Development
+Regenerate the PEGJS grammar with
+
+    npm run grammar
+
+Run tests with
+
+    npm run test
+
+Watch tests with
+
+    npm run watch
