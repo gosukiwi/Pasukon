@@ -11,6 +11,7 @@ describe('parsers/many1', function () {
 
     const result = parser.parse(lexer.lex('AAA'))
 
+    expect(result.matched).to.eql(['A', 'A', 'A'])
     expect(result.success).to.eq(true)
     expect(result.remaining[0].is('EOF')).to.eq(true)
   })
