@@ -1,13 +1,13 @@
 const expect = require('chai').expect
 const Token = require('../../../lib/parsers/token')
-const Many0 = require('../../../lib/parsers/combinators/many0')
+const Many1 = require('../../../lib/parsers/combinators/many1')
 const Lexer = require('../../test-lexer')
 
-describe('parsers/many0', function () {
+describe('parsers/many1', function () {
   it('matches many', function () {
     const lexer = new Lexer()
     const parseA = new Token('A')
-    const parser = new Many0(parseA)
+    const parser = new Many1(parseA)
 
     const result = parser.parse(lexer.lex('AAA'))
 
@@ -15,14 +15,14 @@ describe('parsers/many0', function () {
     expect(result.remaining[0].is('EOF')).to.eq(true)
   })
 
-  it('matches zero', function () {
+  it('doesnt match zero', function () {
     const lexer = new Lexer()
     const parseA = new Token('A')
-    const parser = new Many0(parseA)
+    const parser = new Many1(parseA)
 
     const result = parser.parse(lexer.lex('B'))
 
-    expect(result.success).to.eq(true)
+    expect(result.success).to.eq(false)
     expect(result.remaining[0].is('B')).to.eq(true)
   })
 })

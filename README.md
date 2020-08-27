@@ -303,6 +303,18 @@ const result = new Pasukon(fs.readFileSync('grammar.gs'), new MyLexer()).parse('
 
 See [Lexer](#lexer) for more info on how the lexer works.
 
+# [TODO] CLI Usage
+You can generate a pre-compiled grammar as such:
+
+    npx pasukon -o parser.js grammar.g
+
+That will generate a `parser.js` file that you can just use:
+
+```javascript
+const parser = require('parser')
+const result = parser.parse('my input')
+```
+
 ## Using The Context
 You can add to the context in which the code in grammars get evaluated.
 
