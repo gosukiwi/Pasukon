@@ -141,6 +141,58 @@ statements
 The last rule will be considered the __starting rule__. The grammar must be
 defined from more specific to more generic.
 
+## Evaluating Code
+Rules can optionally evaluate some code:
+
+```
+statement
+  | :A then ?(:B or :C) '$$ = { type: 'FOO', first: $1, second: $2 }'
+  | :D
+  ;
+```
+
+Only the outermost parser evaluates the code, and at most, it has two variables
+to access it's data: `$1` and `$2`. If it's a unary combinator or a single
+parser, it will only populate `$1`.
+
+You can build up complex results from simple ones as such:
+
+```
+name
+  | many0 (:A or :B) '$$ = { type: "NAME", value: $1.join("") }'
+  ;
+
+statement
+  | name then :C '$$ = { type: "STATEMENT", name: $1, b: $2 }'
+  ;
+```
+
+## Injecting your own
+
+```
+Evaluator.setContext({ foo: function () { return 2 } })
+```
+
+You can then access it using `$`:
+
+```
+name
+  | :A '$.foo($1)'
+  ;
+```
+
+The rule above will return `2` if it matches, because `$.foo` returns `2`.
+
+# Programmatic Usage
+
+```javascript
+const result = new Pasukon('grammar.g').parse('input')
+// if you want to use your own lexer
+const result = new Pasukon('grammar.g', new MyLexer()).parse('input')
+```
+
+See [Lexer](#lexer) for more info on how the lexer works.
+
 # Available Combinators
 Unary combinators: `many0`; `many1`; `opt`.
 
