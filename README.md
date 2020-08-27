@@ -151,9 +151,17 @@ You can add your own combinators as such:
 
 ```javascript
 const Parser = require('parser-combinator').Parser
+const lexer = ...
 const parser = new Parser(lexer.lex('my input'))
-parser.addCombinator('combinatorName', MyCombinatorClass)
+parser.addUnaryCombinator('combinatorName', MyCombinatorClass)
+parser.addBinaryCombinator('otherName', SomeBinaryCombinator)
 ```
+
+Unary combinators take a single argument, a parser, in the constructor. Binary
+combinators take an array of two parsers.
+
+They must implement a `parse` method and return a `Result` object. You can see
+example combinators in `./lib/parsers/combinators`.
 
 # Development
 Regenerate the PEGJS grammar with
