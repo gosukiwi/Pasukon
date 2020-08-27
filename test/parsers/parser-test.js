@@ -126,6 +126,26 @@ statement
       expect(result.matched).to.eq('AAA')
     })
 
+    it('evals with rule call', function () {
+      const definitions = grammar.parse(`
+name
+  | many0 :A '$1.join("")'
+  ;
+
+start
+  | name '$$ = { name: $1 }'
+  ;
+      `)
+      const parser = new Parser(definitions)
+      const lexer = new Lexer()
+
+      const result = parser.parse(lexer.lex('AAA'))
+
+      expect(result.succeeded).to.eq(true)
+      expect(result.remaining[0].is('EOF')).to.eq(true)
+      expect(result.matched.name).to.eq('AAA')
+    })
+
     it('evals with long chain', function () {
       const definitions = grammar.parse(`
 statement

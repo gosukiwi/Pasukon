@@ -182,9 +182,9 @@ statement
   ;
 ```
 
-Only the outermost parser evaluates the code, and at most, it has two variables
-to access it's data: `$1` and `$2`. If it's a unary combinator or a single
-parser, it will only populate `$1`.
+Only the outermost call evaluates the code. Binary calls populate two variables:
+`$1` and `$2`, which is the match of the left hand side and right hand side
+respectively. Unary or rule calls only populate `$1`.
 
 You can build up complex results from simple ones as such:
 
