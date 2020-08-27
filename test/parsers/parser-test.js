@@ -2,7 +2,6 @@ const grammar = require('../../lib/grammar')
 const expect = require('chai').expect
 const Lexer = require('../test-lexer')
 const Parser = require('../../lib/parsers/parser')
-const Evaluator = require('../../lib/parsers/evaluator')
 
 describe('parsers/parser', function () {
   describe('unary call', function () {
@@ -142,7 +141,7 @@ statement
       expect(result.matched).to.eq('ABAC')
     })
 
-    it('collects values', function () {
+    it('collects values along rules', function () {
       const definitions = grammar.parse(`
 name
   | many0 (:A or :B) '$$ = { type: "NAME", value: $1.join("") }'
@@ -163,6 +162,40 @@ statement
       expect(result.matched.name.type).to.eq('NAME')
       expect(result.matched.name.value).to.eq('ABBA')
       expect(result.matched.b).to.eq('C')
+    })
+
+    it('collects values when using ors', function () {
+      const definitions = grammar.parse(`
+name
+  | many0 (:B or :C) '$$ = { type: "NAME", value: $1.join("") }'
+  | many0 (:A or :B) '$$ = { type: "NAME", value: $1.join("") }'
+  ;
+      `)
+      const parser = new Parser(definitions)
+      const lexer = new Lexer()
+
+      const result = parser.parse(lexer.lex('BBCCB'))
+
+      expect(result.succeeded).to.eq(true)
+      expect(result.remaining[0].is('EOF')).to.eq(true)
+      expect(result.matched.type).to.eq('NAME')
+      expect(result.matched.value).to.eq('BBCCB')
+    })
+
+    it('collects nested', function () {
+      const definitions = grammar.parse(`
+name
+  | :A then :B then :C '[$1].concat($2)'
+  ;
+      `)
+      const parser = new Parser(definitions)
+      const lexer = new Lexer()
+
+      const result = parser.parse(lexer.lex('ABC'))
+
+      expect(result.succeeded).to.eq(true)
+      expect(result.remaining[0].is('EOF')).to.eq(true)
+      expect(result.matched).to.eql(['A', 'B', 'C'])
     })
   })
 })
