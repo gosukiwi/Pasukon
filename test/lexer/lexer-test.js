@@ -51,4 +51,16 @@ lex
     expect(tokens[2].line).to.eq(4)
     expect(tokens[2].col).to.eq(1)
   })
+
+  it('reports the position when failing', function () {
+    const definitions = grammar.parse(`
+lex
+  match  A        'A'
+/lex
+    `)
+
+    const lexer = new Lexer(definitions[0].tokens)
+
+    expect(() => lexer.lex('AAB')).to.throw(/at line 1, column 3/)
+  })
 })
