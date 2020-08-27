@@ -1,14 +1,21 @@
-# Parser Combinator
-Not a pure parser combinator, as it requires a lexing step for performance
-reasons. But it does allow you to define a language by combining parsers.
+# Pasukon
+Pasukon generates parsers based on a relatively easy to learn grammar.
+
+It's based on parser combinators, but it's not a pure parser combinator, as it
+requires a lexing step for performance reasons.
+
+It allows you to define your own lexer and combinators if needed.
 
 # Concepts
 __Parser__: A function that takes an array of tokens as input and returns a
-`Result` object, which reports whether the match was successful or not. It also
-exposes a `remaining` property with the remaining of the given input.
+`Result` object, which reports whether the match was successful or not. It
+exposes a `remaining` property with the remaining of the given input, and also
+a `code` property which is optional, and if present, it will invoke the given
+code snippet if the match succeeded and store the results in the `matched`
+field. If no code is given, it will fill `matched` in a default way.
 
 __Combinator__: Takes one or more parsers and returns a new parser, combining
-both in some way. For example, `then` takes two parsers and creates a new one,
+them in some way. For example, `then` takes two parsers and creates a new one,
 matching one, and then the other. `many0` takes one parser and matches it zero
 or more times.
 
@@ -45,13 +52,11 @@ Up to you.
 In it's simplest form, the grammar looks like this:
 
 ```
-<my-new-parser>
-  | <parser-name>
+<rule-name>
+  | <rule-body>
+  | <another-rule-body>
   ;
 ```
-
-It will generate a new parser called `my-new-parser` and that parser will simply
-call `parser-name`.
 
 You can use the built-in `token` parser to match a single token:
 
@@ -62,14 +67,19 @@ program
 ```
 
 That will make a new parser, called `program`, that will call the `token` parser
-with the argument `a`.
+with the argument `a`. It will match a single instance of the token `a`.
 
 The token parser is special, because it uses tokens as parameters, instead of
 other parsers.
 
-Calling one parser followed by another is called _Unary Call_.
+There are two ways of calling parsers. _Unary Call_:
 
-Another way to invoke parsers is _Binary Call_:
+```
+program
+  | many0 (token a)
+```
+
+And _Binary Call_:
 
 ```
 program
@@ -77,30 +87,50 @@ program
   ;
 ```
 
-The above will call the binary parser `or` (because it takes two parsers as
-input, left-hand-side and right-hand-side) with the two token parsers.
-
-Notice that we have to use parentheses, otherwise the parser would think it
-looks like this:
+A rule can be composed of any combination of both:
 
 ```
 program
-  | token a (or token b)
+  | (many0 (token a) or (token b))
+  | (token a) or ((token b) or (token c))
   ;
 ```
 
-Which is not at all what we want. There grammar provides some sugar to work
-around this. The above is equivalent to this:
+Notice that no matter how nested it is, an outmost rule is always either in
+__unary__ format, or __binary__ format. This is important for using code
+evaluation later on.
+
+Another important thing to note is the use parentheses. Binary combinators all
+have the same priority so they are always executed in order, from left to right:
 
 ```
+program
+  | (token a) or (token b) or (token c)
+  // is the same as
+  | (token a) or ((token b) or (token c))
+  ;
+```
+
+If you need to change the priority, simply use parentheses. It's recommended to
+always use them to make things clear, and try to keep rules short using rule
+composition.
+
+## Grammar Sugar
+The grammar provides some sugar 🍬 to make things easier. The most common is
+the `|` syntax:
+
+```
+program
+  | (token a) or (token b)
+  ;
+// is the same as
 program
   | token a
   | token b
   ;
 ```
 
-So `|` is calling the `or` parser under the hood. Also, you can use `:` to
-use the token parser:
+Also, you can use `:` to use the token parser:
 
 ```
 program
@@ -109,12 +139,13 @@ program
   ;
 ```
 
-Because the shortcut syntax has high priority, you can also express it like
-this:
+The shortcut syntax has high priority, so it can go anywhere and there's no need
+for parentheses:
 
 ```
 program
-  | :a or :b
+  | opt :a // this is a unary call to the `opt` parser
+  | opt token a // this is a binary call to the `token` parser, which is not what we want, and is invalid
   ;
 ```
 
