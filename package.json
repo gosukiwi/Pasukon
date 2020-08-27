@@ -27,5 +27,5 @@
     "grammar": "pegjs -o lib/grammar.js lib/grammar.pegjs"
   },
   "author": "Federico Ramirez",
-  "license": "ISC"
+  "license": "MIT"
 }
