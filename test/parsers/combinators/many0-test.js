@@ -1,7 +1,7 @@
 const expect = require('chai').expect
-const Token = require('../../lib/parsers/token')
-const Many0 = require('../../lib/parsers/combinators/many0')
-const Lexer = require('../test-lexer')
+const Token = require('../../../lib/parsers/token')
+const Many0 = require('../../../lib/parsers/combinators/many0')
+const Lexer = require('../../test-lexer')
 
 describe('parsers/many0', function () {
   it('works', function () {
