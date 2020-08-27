@@ -8,11 +8,13 @@ It allows you to define your own lexer and combinators if needed.
 
 # Concepts
 __Parser__: A function that takes an array of tokens as input and returns a
-`Result` object, which reports whether the match was successful or not. It
-exposes a `remaining` property with the remaining of the given input, and also
-a `code` property which is optional, and if present, it will invoke the given
-code snippet if the match succeeded and store the results in the `matched`
-field. If no code is given, it will fill `matched` in a default way.
+`Result` object.
+
+__Result__: An object that reports whether the match was successful or not. It
+exposes a `remaining` property with the remaining of the given input, and also a
+`code` property which is optional. If present, it will invoke the given code
+snippet if the match succeeded and store the results in the `matched` field. If
+no code is given, it will fill `matched` in a default way.
 
 __Combinator__: Takes one or more parsers and returns a new parser, combining
 them in some way. For example, `then` takes two parsers and creates a new one,
@@ -58,6 +60,7 @@ In it's simplest form, the grammar looks like this:
   ;
 ```
 
+Each rule returns a parser, which can be used by other rules and combinators.
 You can use the built-in `token` parser to match a single token:
 
 ```
@@ -66,20 +69,21 @@ program
   ;
 ```
 
-That will make a new parser, called `program`, that will call the `token` parser
-with the argument `a`. It will match a single instance of the token `a`.
+That will make a new parser, called `program`, that will call the `token`
+built-in parser with the argument `a`. Now the `program` parser will match a
+single instance of the token `a`.
 
 The token parser is special, because it uses tokens as parameters, instead of
 other parsers.
 
-There are two ways of calling parsers. _Unary Call_:
+There are three ways of calling parsers. _Unary Call_:
 
 ```
 program
   | many0 (token a)
 ```
 
-And _Binary Call_:
+_Binary Call_:
 
 ```
 program
@@ -87,7 +91,19 @@ program
   ;
 ```
 
-A rule can be composed of any combination of both:
+And _Rule Call_:
+
+```
+program
+  | (token a) or (token b)
+  ;
+
+start
+  | program
+  ;
+```
+
+A rule can be composed of any combination of those methods:
 
 ```
 program
@@ -97,11 +113,11 @@ program
 ```
 
 Notice that no matter how nested it is, an outmost rule is always either in
-__unary__ format, or __binary__ format. This is important for using code
-evaluation later on.
+__unary__ format, or __binary__ format (unless it's just a simple rule call).
+This is important for using code evaluation later on.
 
 Another important thing to note is the use parentheses. Binary combinators all
-have the same priority so they are always executed in order, from left to right:
+have the same priority so they are always executed from left to right:
 
 ```
 program
@@ -112,12 +128,12 @@ program
 ```
 
 If you need to change the priority, simply use parentheses. It's recommended to
-always use them to make things clear, and try to keep rules short using rule
+always use them to make things clear, and try to keep rules short using
 composition.
 
-## Grammar Sugar
-The grammar provides some sugar 🍬 to make things easier. The most common is
-the `|` syntax:
+## Syntactic Sugar 🍬
+The grammar syntax provides some sugar 🍬 to make things easier. The most common
+is `|`:
 
 ```
 program
@@ -130,7 +146,8 @@ program
   ;
 ```
 
-Also, you can use `:` to use the token parser:
+Also, most built-in unary parsers have a _shortcut syntax_. For example, you can
+use `:` to use the token parser:
 
 ```
 program
@@ -169,8 +186,8 @@ statements
   ;
 ```
 
-The last rule will be considered the __starting rule__. The grammar must be
-defined from more specific to more generic.
+The last rule will be considered the __starting rule__. All rules must be
+defined before using them in another rule.
 
 ## Evaluating Code
 Rules can optionally evaluate some code:
