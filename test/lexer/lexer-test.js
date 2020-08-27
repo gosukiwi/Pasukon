@@ -42,7 +42,7 @@ lex
     `)
 
     const lexer = new Lexer(definitions[0].tokens)
-    const tokens = lexer.lex('AB\nBA\n\nA')
+    const tokens = lexer.lex('AB\nBA\n\nA\n\nA')
 
     expect(tokens[0].line).to.eq(1)
     expect(tokens[0].col).to.eq(1)
@@ -50,6 +50,8 @@ lex
     expect(tokens[1].col).to.eq(2)
     expect(tokens[2].line).to.eq(4)
     expect(tokens[2].col).to.eq(1)
+    expect(tokens[3].line).to.eq(6)
+    expect(tokens[3].col).to.eq(1)
   })
 
   it('reports the position when failing', function () {
