@@ -1,7 +1,7 @@
 # Pasukon
 Pasukon generates parsers based on a relatively easy to learn grammar. It's
-based on parser combinators, but it's not a pure parser combinator, as it
-requires a lexing step for performance reasons.
+based on parser combinators, and unlike other implementation, it uses a lexing
+step for performance reasons.
 
 It allows you to define your own lexer and combinators if needed.
 
@@ -52,15 +52,18 @@ Optionally, you can define a lexer inside a `lex`-`/lex` block. In the format
 
 ```
 lex
-  A 'A'
-  Identifier /[a-zA-Z]/
+  match A 'A'
+  match Identifier /[a-zA-Z]/
 /lex
 ```
 
 It supports two different matchers, the first one just compares by string using
-`startswith`. The second uses regex, and matches the input against it. It
+`startsWith`. The second uses regex, and matches the input against it. It
 returns  true only if the input starts with the given regex, that is, it has
 matched and the index is 0.
+
+For performance reason, it's a good idea to start all regexes with `^` so the
+regex engine can stop as soon as possible.
 
 For more complex lexers, you can build your own. All it needs is an object that
 implements `lex(input)` and returns an array of `Token`.
