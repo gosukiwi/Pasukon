@@ -48,12 +48,14 @@ Below is a cheatsheet of the syntax used to generate a parser:
 
 ## Lexer
 Optionally, you can define a lexer inside a `lex`-`/lex` block. In the format
-`<token-name> <matcher>`.
+`[match|ignore] <token-name> <matcher>`.
 
 ```
 lex
-  match A 'A'
-  match Identifier /[a-zA-Z]/
+  match  DEF        'def'
+  match  IDENTIFIER /^[a-zA-Z]/
+  match  NEWLINE    /^\n/
+  ignore WHITESPACE /^[ \t\r]+/
 /lex
 ```
 
@@ -240,22 +242,6 @@ statement
   ;
 ```
 
-## Injecting your own
-
-```
-Evaluator.setContext({ foo: function () { return 2 } })
-```
-
-You can then access it using `$`:
-
-```
-name
-  | :A '$.foo($1)'
-  ;
-```
-
-The rule above will return `2` if it matches, because `$.foo` returns `2`.
-
 ## Left Recursion
 You have to be careful when defining rules that they are not left-recursive.
 That means, a rule cannot match itself first. It needs to match other things
@@ -298,15 +284,46 @@ TODO
 # Programmatic Usage
 
 ```javascript
-const result = new Pasukon('grammar.g').parse('input')
-// if you want to use your own lexer
-const result = new Pasukon('grammar.g', new MyLexer()).parse('input')
+const result = new Pasukon(`
+lex
+  match A 'A'
+  match B 'B'
+/lex
+
+start
+  | :A or :B
+  ;
+`).parse('A')
+
+// More likely you'll read the grammar from a file
+const result = new Pasukon(fs.readFileSync('grammar.g')).parse('input')
+// Or if you want to use your own lexer
+const result = new Pasukon(fs.readFileSync('grammar.gs'), new MyLexer()).parse('input')
 ```
 
 See [Lexer](#lexer) for more info on how the lexer works.
 
+## Using The Context
+You can add to the context in which the code in grammars get evaluated.
+
+```
+Evaluator.setContext({ foo: function () { return 2 } })
+const result = new Pasukon('grammar.g').parse('input')
+```
+
+You can then access the context using `$`:
+
+```
+name
+  | :A '$.foo($1)'
+  ;
+```
+
+The rule above will return `2` if it matches, because `$.foo` returns `2`. This
+is useful for building up AST nodes.
+
 # Available Combinators
-Unary combinators: `many0`; `many1`; `opt`.
+Unary combinators: `many0`; `many1`; `opt` and `identity`.
 
 Binary combinators: `then`; `or`.
 
@@ -314,12 +331,13 @@ Binary combinators: `then`; `or`.
 You can add your own combinators as such:
 
 ```javascript
-const Parser = require('parser-combinator').Parser
-const lexer = ...
-const parser = new Parser(lexer.lex('my input'))
+const Parser = require('pasukon').Parser
+const parser = new Parser(definitions)
 parser.addUnaryCombinator('combinatorName', MyCombinatorClass)
 parser.addBinaryCombinator('otherName', SomeBinaryCombinator)
 ```
+
+TODO: Make this easier to do, shouldn't need to know the internals.
 
 Unary combinators take a single argument, a parser, in the constructor. Binary
 combinators take an array of two parsers.
