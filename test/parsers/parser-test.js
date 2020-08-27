@@ -252,4 +252,54 @@ name
       expect(result.matched).to.eq(2)
     })
   })
+
+  describe('shortcut syntax', function () {
+    it('works with opt', function () {
+      const definitions = grammar.parse(`
+start
+  | ?:A then :B
+  ;
+      `)
+      const parser = new Parser(definitions)
+      const lexer = new Lexer()
+
+      const result = parser.parse(lexer.lex('B'))
+
+      expect(result.succeeded).to.eq(true)
+      expect(result.remaining[0].is('EOF')).to.eq(true)
+      expect(result.matched).to.eql([null, 'B'])
+    })
+
+    it('works with many1', function () {
+      const definitions = grammar.parse(`
+start
+  | +:A
+  ;
+      `)
+      const parser = new Parser(definitions)
+      const lexer = new Lexer()
+
+      const result = parser.parse(lexer.lex('AAA'))
+
+      expect(result.succeeded).to.eq(true)
+      expect(result.remaining[0].is('EOF')).to.eq(true)
+      expect(result.matched).to.eql(['A', 'A', 'A'])
+    })
+
+    it('works with many0', function () {
+      const definitions = grammar.parse(`
+start
+  | *:A then :B
+  ;
+      `)
+      const parser = new Parser(definitions)
+      const lexer = new Lexer()
+
+      const result = parser.parse(lexer.lex('B'))
+
+      expect(result.succeeded).to.eq(true)
+      expect(result.remaining[0].is('EOF')).to.eq(true)
+      expect(result.matched).to.eql([[], 'B'])
+    })
+  })
 })
