@@ -2,6 +2,7 @@ const grammar = require('../../lib/grammar')
 const expect = require('chai').expect
 const Lexer = require('../test-lexer')
 const Parser = require('../../lib/parsers/parser')
+const Evaluator = require('../../lib/parsers/evaluator')
 
 describe('parsers/parser', function () {
   describe('unary call', function () {
@@ -196,6 +197,39 @@ name
       expect(result.succeeded).to.eq(true)
       expect(result.remaining[0].is('EOF')).to.eq(true)
       expect(result.matched).to.eql(['A', 'B', 'C'])
+    })
+
+    it('works with a token', function () {
+      const definitions = grammar.parse(`
+name
+  | :A '$$ = { name: $1 }'
+  ;
+      `)
+      const parser = new Parser(definitions)
+      const lexer = new Lexer()
+
+      const result = parser.parse(lexer.lex('A'))
+
+      expect(result.succeeded).to.eq(true)
+      expect(result.remaining[0].is('EOF')).to.eq(true)
+      expect(result.matched.name).to.eq('A')
+    })
+
+    it('can access attributes from outside', function () {
+      const definitions = grammar.parse(`
+name
+  | :A '$.foo($1)'
+  ;
+      `)
+      const parser = new Parser(definitions)
+      const lexer = new Lexer()
+
+      Evaluator.setContext({ foo: function () { return 2 } })
+      const result = parser.parse(lexer.lex('A'))
+
+      expect(result.succeeded).to.eq(true)
+      expect(result.remaining[0].is('EOF')).to.eq(true)
+      expect(result.matched).to.eq(2)
     })
   })
 })
