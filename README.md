@@ -300,10 +300,21 @@ start
 // More likely you'll read the grammar from a file
 const result = new Pasukon(fs.readFileSync('grammar.g')).parse('input')
 // Or if you want to use your own lexer
-const result = new Pasukon(fs.readFileSync('grammar.gs'), new MyLexer()).parse('input')
+const result = new Pasukon(fs.readFileSync('grammar.gs'), { lexer: new MyLexer() }).parse('input')
 ```
 
 See [Lexer](#lexer) for more info on how the lexer works.
+
+## Options
+The options object can define:
+
+* `lexer`: An instance of a Lexer to be used by the parser. If none specified, it will use the built-in lexer in the grammar. Default: `undefined`.
+* `cache`: Boolean. When `true`, it will cache the parsers results. Default: `false`.
+* `start`: String. When specified, it will start the parsing process from the given rule.
+
+```javascript
+const result = new Pasukon('...', { cache: true, start: 'some_rule' }).parse('input')
+```
 
 # [TODO] CLI Usage
 You can generate a pre-compiled grammar as such:

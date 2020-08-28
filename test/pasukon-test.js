@@ -23,7 +23,7 @@ start
 start
   | :A then *:B then :A '$$ = [$1].concat($2[0]).concat($2[1])'
   ;
-    `, new Lexer())
+    `, { lexer: new Lexer() })
 
     expect(pasukon.parse('ABBA')).to.eql(['A', 'B', 'B', 'A'])
   })
