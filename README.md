@@ -3,7 +3,8 @@ Pasukon generates parsers based on a relatively easy to learn grammar. It's
 based on parser combinators, and unlike other implementation, it uses a lexing
 step for performance reasons.
 
-It allows you to define your own lexer and combinators if needed.
+It is highly extensible (you can make your own lexer and combinators), has no
+dependencies, and works on Node and Browser.
 
 # Why
 I love [PEG.js](https://pegjs.org), but it's designed to be used for prototyping
