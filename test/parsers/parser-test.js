@@ -4,6 +4,13 @@ const Lexer = require('../test-lexer')
 const Parser = require('../../lib/parsers/parser')
 const Evaluator = require('../../lib/parsers/evaluator')
 
+function parse (grammarString, input, options = {}) {
+  const definitions = grammar.parse(grammarString)
+  const parser = new Parser(definitions, options)
+  const lexer = new Lexer()
+  return parser.parse(lexer.lex(input))
+}
+
 describe('parsers/parser', function () {
   describe('unary call', function () {
     it('parses A', function () {
@@ -394,5 +401,41 @@ C
     `)
 
     expect(() => new Parser(definitions)).to.throw(/A -> B -> C -> A/)
+  })
+
+  describe('memoization', function () {
+    it('caches a parser with an input', function () {
+      const result = parse(`
+start
+  | *:A then :B
+  | *:A then :C
+  ;
+      `, 'AAAC', { cache: true })
+
+      expect(result.succeeded).to.eq(true)
+    })
+  })
+
+  describe('debug mode', function () {
+    it('log parsing out', function () {
+      const log = []
+      const logger = {
+        log: function (message) {
+          log.push(message)
+        }
+      }
+
+      parse(`
+start
+  | *:A then :B
+  | *:A then :C
+  ;
+      `, 'AAAC', { debug: true, logger })
+
+      expect(log.length).to.be.gt(0)
+      expect(log).to.include('<RULE: start>: START')
+      expect(log).to.include('  [THEN [MANY0 [TOKEN-PARSER A]] [TOKEN-PARSER B]]: START')
+      expect(log).to.include('<RULE: start>: OK')
+    })
   })
 })
