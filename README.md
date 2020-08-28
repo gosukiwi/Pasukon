@@ -108,6 +108,7 @@ There are three ways of calling parsers. _Unary Call_:
 ```
 program
   | many0 (token a)
+  ;
 ```
 
 _Binary Call_:
@@ -271,6 +272,8 @@ RULE_B
   | RULE_A
   ;
 ```
+
+The parser will check for left-recursion and fail if it can find it.
 
 ## Operator Precedence
 Say you want to match `+`, `-` first, then `*` and `/`. Here's an example on how

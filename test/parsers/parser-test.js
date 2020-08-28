@@ -348,6 +348,7 @@ C
   it('complains of left recursion, multiple rules 2', function () {
     const definitions = grammar.parse(`
 A
+| :B
 | B
 ;
 
