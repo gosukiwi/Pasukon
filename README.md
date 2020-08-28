@@ -33,10 +33,7 @@ __Parser__: A function that takes an array of tokens as input and returns a
 `Result` object.
 
 __Result__: An object that reports whether the match was successful or not. It
-exposes a `remaining` property with the remaining of the given input, and also a
-`code` property which is optional. If present, it will invoke the given code
-snippet if the match succeeded and store the results in the `matched` field. If
-no code is given, it will fill `matched` in a default way.
+exposes a `remaining` property with the remaining of the given input.
 
 __Combinator__: Takes one or more parsers and returns a new parser, combining
 them in some way. For example, `then` takes two parsers and creates a new one,
@@ -122,12 +119,8 @@ program
 And _Rule Call_:
 
 ```
-program
-  | (token a) or (token b)
-  ;
-
 start
-  | program
+  | another-rule
   ;
 ```
 
@@ -141,8 +134,7 @@ program
 ```
 
 Notice that no matter how nested it is, an outmost rule is always either in
-__unary__ format, or __binary__ format (unless it's just a simple rule call).
-This is important for using code evaluation later on.
+__unary__, __binary__, or __rule call__ format.
 
 Another important thing to note is the use parentheses. Binary combinators all
 have the same priority so they are always executed from left to right:
@@ -156,8 +148,7 @@ program
 ```
 
 If you need to change the priority, simply use parentheses. It's recommended to
-always use them to make things clear, and try to keep rules short using
-composition.
+always use them in non-trivial rules to make things clear.
 
 ## Syntactic Sugar 🍬
 The grammar syntax provides some sugar 🍬 to make things easier. The most common
@@ -238,7 +229,17 @@ name
   ;
 
 statement
-  | name then :C '$$ = { type: "STATEMENT", name: $1, b: $2 }'
+  | name then :C '$$ = { type: "STATEMENT", name: $1, c: $2 }'
+  ;
+```
+
+To make things easier to manage, you can use the special `as` combinator, which
+takes a parser on the left hand side, and a token on the right hand side. Then
+it will __give you access to a variable of the same name__ when evaluating code:
+
+```
+statement
+  | (*(:A or :B) as :name) then :C '$$ = { type: "STATEMENT", name: $name.join(""), c: $2 }'
   ;
 ```
 

@@ -251,6 +251,38 @@ name
       expect(result.remaining.peek('EOF')).to.eq(true)
       expect(result.matched).to.eq(2)
     })
+
+    it('can use names', function () {
+      const definitions = grammar.parse(`
+name
+  | (:A as :first) then :B then (:C as :second) '[$first, $second]'
+  ;
+      `)
+      const parser = new Parser(definitions)
+      const lexer = new Lexer()
+
+      const result = parser.parse(lexer.lex('ABC'))
+
+      expect(result.succeeded).to.eq(true)
+      expect(result.remaining.peek('EOF')).to.eq(true)
+      expect(result.matched).to.eql(['A', 'C'])
+    })
+
+    it('can use names, another example', function () {
+      const definitions = grammar.parse(`
+statement
+  | (*(:A or :B) as :name) then :C '$$ = { name: $name.join(""), c: $2 }'
+  ;
+      `)
+      const parser = new Parser(definitions)
+      const lexer = new Lexer()
+
+      const result = parser.parse(lexer.lex('ABBAC'))
+
+      expect(result.succeeded).to.eq(true)
+      expect(result.remaining.peek('EOF')).to.eq(true)
+      expect(result.matched).to.eql({ name: 'ABBA', c: 'C' })
+    })
   })
 
   describe('shortcut syntax', function () {

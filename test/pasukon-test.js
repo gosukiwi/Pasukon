@@ -15,7 +15,7 @@ start
   ;
     `)
 
-    expect(pasukon.parse('ABBA').matched).to.eql(['A', 'B', 'B', 'A'])
+    expect(pasukon.parse('ABBA')).to.eql(['A', 'B', 'B', 'A'])
   })
 
   it('works with custom lexer', function () {
@@ -28,7 +28,7 @@ start
     expect(pasukon.parse('ABBA')).to.eql(['A', 'B', 'B', 'A'])
   })
 
-  it.only('parses its own grammar syntax', function () {
+  it.skip('parses its own grammar syntax', function () {
     const pasukon = new Pasukon(`
 lex
   match  LEX_CLOSE      '/lex'
@@ -54,7 +54,7 @@ token-definition
   ;
 
 lex
-  | :LEX_OPEN then token-definition then :LEX_CLOSE
+  | :LEX_OPEN then token-definition then :LEX_CLOSE '$$ = $2[0]'
   ;
 
 start
@@ -64,7 +64,7 @@ start
 
     const result = pasukon.parse(`
 lex
-  match FOO BAR
+  match FOO 'FOO'
 /lex
     `.trim())
     console.log(result)
