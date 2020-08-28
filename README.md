@@ -320,7 +320,8 @@ The options object can define:
 * `lexer`: An instance of a Lexer to be used by the parser. Default: `undefined`. If none specified, it will use the built-in lexer in the grammar.
 * `cache`: Boolean. Default: `false`. When `true`, it will cache the parsers results.
 * `start`: String. Default: `null`. When given, it will start the parsing process from the specified rule.
-* `debug`: Boolean. Default: `false`.
+* `debug`: Boolean. Default: `false`. When `true`, it will use the logger to log each parsing step.
+* `logger`: Default: `null`. If specified, it will use this logger when debugging. A logger only needs a `log(string)` method.
 
 ```javascript
 const result = new Pasukon('...', { cache: true, start: 'some_rule' }).parse('input')
