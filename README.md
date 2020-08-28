@@ -213,8 +213,7 @@ statements
   ;
 ```
 
-The last rule will be considered the __starting rule__. All rules must be
-defined before using them in another rule.
+The last rule will be considered the __starting rule__.
 
 ## Evaluating Code
 Rules can optionally evaluate some code:

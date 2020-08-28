@@ -302,4 +302,64 @@ start
       expect(result.matched).to.eql([[], 'B'])
     })
   })
+
+  it('complains of left recursion, single rule', function () {
+    const definitions = grammar.parse(`
+A
+| A then :b
+;
+    `)
+
+    expect(() => new Parser(definitions)).to.throw(/A -> A/)
+  })
+
+  it('complains of left recursion, two rules', function () {
+    const definitions = grammar.parse(`
+A
+| B
+;
+
+B
+| A
+;
+    `)
+
+    expect(() => new Parser(definitions)).to.throw(/A -> B -> A/)
+  })
+
+  it('complains of left recursion, multiple rules', function () {
+    const definitions = grammar.parse(`
+A
+| B
+;
+
+B
+| C
+;
+
+C
+| B
+;
+    `)
+
+    expect(() => new Parser(definitions)).to.throw(/B -> C -> B/)
+  })
+
+  it('complains of left recursion, multiple rules 2', function () {
+    const definitions = grammar.parse(`
+A
+| B
+;
+
+B
+| C
+;
+
+C
+| A
+;
+    `)
+
+    expect(() => new Parser(definitions)).to.throw(/A -> B -> C -> A/)
+  })
 })
