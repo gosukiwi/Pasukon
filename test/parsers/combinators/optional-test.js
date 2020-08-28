@@ -1,29 +1,32 @@
 const expect = require('chai').expect
-const Token = require('../../../lib/parsers/token')
+const Token = require('../../../lib/parsers/token-parser')
 const Optional = require('../../../lib/parsers/combinators/optional')
 const Lexer = require('../../test-lexer')
+const TokenList = require('../../../lib/parsers/token-list')
 
-describe('parsers/many0', function () {
+function lex (input) {
+  return new TokenList(new Lexer().lex(input))
+}
+
+describe('parsers/optional', function () {
   it('can match nothing', function () {
-    const lexer = new Lexer()
     const parseA = new Token('A')
     const parser = new Optional(parseA)
 
-    const result = parser.parse(lexer.lex('B'))
+    const result = parser.parse(lex('B'))
 
     expect(result.success).to.eq(true)
     expect(result.matched).to.eq(null)
-    expect(result.remaining[0].is('B')).to.eq(true)
+    expect(result.remaining.peek('B')).to.eq(true)
   })
 
   it('can match something', function () {
-    const lexer = new Lexer()
     const parseA = new Token('A')
     const parser = new Optional(parseA)
 
-    const result = parser.parse(lexer.lex('AB'))
+    const result = parser.parse(lex('AB'))
 
     expect(result.success).to.eq(true)
-    expect(result.remaining[0].is('B')).to.eq(true)
+    expect(result.remaining.peek('B')).to.eq(true)
   })
 })

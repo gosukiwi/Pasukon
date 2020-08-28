@@ -19,7 +19,7 @@ statement
       const result = parser.parse(lexer.lex('A'))
 
       expect(result.succeeded).to.eq(true)
-      expect(result.remaining[0].is('EOF')).to.eq(true)
+      expect(result.remaining.peek('EOF')).to.eq(true)
     })
 
     it('parses B', function () {
@@ -35,7 +35,7 @@ statement
       const result = parser.parse(lexer.lex('B'))
 
       expect(result.succeeded).to.eq(true)
-      expect(result.remaining[0].is('EOF')).to.eq(true)
+      expect(result.remaining.peek('EOF')).to.eq(true)
     })
 
     it('doesnt parse C', function () {
@@ -51,7 +51,7 @@ statement
       const result = parser.parse(lexer.lex('C'))
 
       expect(result.succeeded).to.eq(false)
-      expect(result.remaining[0].is('C')).to.eq(true)
+      expect(result.remaining.peek('C')).to.eq(true)
     })
   })
 
@@ -68,7 +68,7 @@ statement
       const result = parser.parse(lexer.lex('AB'))
 
       expect(result.succeeded).to.eq(true)
-      expect(result.remaining[0].is('EOF')).to.eq(true)
+      expect(result.remaining.peek('EOF')).to.eq(true)
     })
   })
 
@@ -89,7 +89,7 @@ start
       const result = parser.parse(lexer.lex('AB'))
 
       expect(result.succeeded).to.eq(true)
-      expect(result.remaining[0].is('EOF')).to.eq(true)
+      expect(result.remaining.peek('EOF')).to.eq(true)
     })
   })
 
@@ -106,7 +106,7 @@ statement
       const result = parser.parse(lexer.lex('AB'))
 
       expect(result.succeeded).to.eq(true)
-      expect(result.remaining[0].is('EOF')).to.eq(true)
+      expect(result.remaining.peek('EOF')).to.eq(true)
       expect(result.matched).to.eql(['A', 'B'])
     })
 
@@ -122,7 +122,7 @@ statement
       const result = parser.parse(lexer.lex('AAA'))
 
       expect(result.succeeded).to.eq(true)
-      expect(result.remaining[0].is('EOF')).to.eq(true)
+      expect(result.remaining.peek('EOF')).to.eq(true)
       expect(result.matched).to.eq('AAA')
     })
 
@@ -142,7 +142,7 @@ start
       const result = parser.parse(lexer.lex('AAA'))
 
       expect(result.succeeded).to.eq(true)
-      expect(result.remaining[0].is('EOF')).to.eq(true)
+      expect(result.remaining.peek('EOF')).to.eq(true)
       expect(result.matched.name).to.eq('AAA')
     })
 
@@ -158,7 +158,7 @@ statement
       const result = parser.parse(lexer.lex('ABAC'))
 
       expect(result.succeeded).to.eq(true)
-      expect(result.remaining[0].is('EOF')).to.eq(true)
+      expect(result.remaining.peek('EOF')).to.eq(true)
       expect(result.matched).to.eq('ABAC')
     })
 
@@ -178,7 +178,7 @@ statement
       const result = parser.parse(lexer.lex('ABBAC'))
 
       expect(result.succeeded).to.eq(true)
-      expect(result.remaining[0].is('EOF')).to.eq(true)
+      expect(result.remaining.peek('EOF')).to.eq(true)
       expect(result.matched.type).to.eq('STATEMENT')
       expect(result.matched.name.type).to.eq('NAME')
       expect(result.matched.name.value).to.eq('ABBA')
@@ -198,7 +198,7 @@ name
       const result = parser.parse(lexer.lex('BBCCB'))
 
       expect(result.succeeded).to.eq(true)
-      expect(result.remaining[0].is('EOF')).to.eq(true)
+      expect(result.remaining.peek('EOF')).to.eq(true)
       expect(result.matched.type).to.eq('NAME')
       expect(result.matched.value).to.eq('BBCCB')
     })
@@ -215,7 +215,7 @@ name
       const result = parser.parse(lexer.lex('ABC'))
 
       expect(result.succeeded).to.eq(true)
-      expect(result.remaining[0].is('EOF')).to.eq(true)
+      expect(result.remaining.peek('EOF')).to.eq(true)
       expect(result.matched).to.eql(['A', 'B', 'C'])
     })
 
@@ -231,7 +231,7 @@ name
       const result = parser.parse(lexer.lex('A'))
 
       expect(result.succeeded).to.eq(true)
-      expect(result.remaining[0].is('EOF')).to.eq(true)
+      expect(result.remaining.peek('EOF')).to.eq(true)
       expect(result.matched.name).to.eq('A')
     })
 
@@ -248,7 +248,7 @@ name
       const result = parser.parse(lexer.lex('A'))
 
       expect(result.succeeded).to.eq(true)
-      expect(result.remaining[0].is('EOF')).to.eq(true)
+      expect(result.remaining.peek('EOF')).to.eq(true)
       expect(result.matched).to.eq(2)
     })
   })
@@ -266,7 +266,7 @@ start
       const result = parser.parse(lexer.lex('B'))
 
       expect(result.succeeded).to.eq(true)
-      expect(result.remaining[0].is('EOF')).to.eq(true)
+      expect(result.remaining.peek('EOF')).to.eq(true)
       expect(result.matched).to.eql([null, 'B'])
     })
 
@@ -282,7 +282,7 @@ start
       const result = parser.parse(lexer.lex('AAA'))
 
       expect(result.succeeded).to.eq(true)
-      expect(result.remaining[0].is('EOF')).to.eq(true)
+      expect(result.remaining.peek('EOF')).to.eq(true)
       expect(result.matched).to.eql(['A', 'A', 'A'])
     })
 
@@ -298,7 +298,7 @@ start
       const result = parser.parse(lexer.lex('B'))
 
       expect(result.succeeded).to.eq(true)
-      expect(result.remaining[0].is('EOF')).to.eq(true)
+      expect(result.remaining.peek('EOF')).to.eq(true)
       expect(result.matched).to.eql([[], 'B'])
     })
   })
