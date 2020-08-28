@@ -285,7 +285,15 @@ TODO
 ```
 
 # Programmatic Usage
+The basic usage is simply instantiating `Pasukon` with a grammar string as first
+argument, and an optional hash with options:
 
+```javascript
+const parser = new Pasukon('...', { debug: true })
+const result = parser.parse('some input')
+```
+
+Here's a more complete example:
 ```javascript
 const result = new Pasukon(`
 lex
@@ -309,9 +317,10 @@ See [Lexer](#lexer) for more info on how the lexer works.
 ## Options
 The options object can define:
 
-* `lexer`: An instance of a Lexer to be used by the parser. If none specified, it will use the built-in lexer in the grammar. Default: `undefined`.
-* `cache`: Boolean. When `true`, it will cache the parsers results. Default: `false`.
-* `start`: String. When specified, it will start the parsing process from the given rule.
+* `lexer`: An instance of a Lexer to be used by the parser. Default: `undefined`. If none specified, it will use the built-in lexer in the grammar.
+* `cache`: Boolean. Default: `false`. When `true`, it will cache the parsers results.
+* `start`: String. Default: `null`. When given, it will start the parsing process from the specified rule.
+* `debug`: Boolean. Default: `false`.
 
 ```javascript
 const result = new Pasukon('...', { cache: true, start: 'some_rule' }).parse('input')
@@ -406,6 +415,17 @@ tail
   | :c
   ;
 ```
+
+Yet another alternative is enabling __caching__. Simply pass `{ cache: true }`
+to the options and `(many0 :a)` will be evaluated only once (in the first
+example).
+
+Note that memoization uses up more memory, and has the extra step of
+saving/checking each parse step. It's up to you whether you want to use it or
+not.
+
+Luckly, it's very easy to toggle so once your grammar is done, try
+enabling/disabling it and see if you get any performance benefits.
 
 # Development
 Regenerate the PEGJS grammar with
