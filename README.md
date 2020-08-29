@@ -340,11 +340,11 @@ Evaluator.setContext({ foo: function () { return 2 } })
 const result = new Pasukon('grammar.g').parse('input')
 ```
 
-You can then access the context using `$`:
+You can then access the context using `$ctx`:
 
 ```
 name
-  | :A '$.foo($1)'
+  | :A 'return $ctx.foo($1)'
   ;
 ```
 
