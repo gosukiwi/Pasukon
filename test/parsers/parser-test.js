@@ -406,11 +406,16 @@ C
   describe('memoization', function () {
     it('caches a parser with an input', function () {
       const result = parse(`
-start
-  | *:A then :B
-  | *:A then :C
+name
+  | *:A '$1.join("")'
+  | *:B
   ;
-      `, 'AAAC', { cache: true })
+
+start
+  | name then :B
+  | name then :C
+  ;
+      `, 'AAAC', { cache: true, debug: false })
 
       expect(result.succeeded).to.eq(true)
     })
