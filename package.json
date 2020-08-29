@@ -11,6 +11,7 @@
   "devDependencies": {
     "benchmark": "^2.1.4",
     "chai": "^4.2.0",
+    "chai-string": "^1.5.0",
     "eslint": "^7.7.0",
     "eslint-config-standard": "^14.1.1",
     "eslint-plugin-import": "^2.22.0",

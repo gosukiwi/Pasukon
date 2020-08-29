@@ -1,5 +1,7 @@
 const selfparse = require('../../lib/self-parse')
-const expect = require('chai').expect
+const chai = require('chai')
+chai.use(require('chai-string'))
+const expect = chai.expect
 const Lexer = require('../test-lexer')
 const Parser = require('../../lib/parsers/parser')
 const Evaluator = require('../../lib/parsers/evaluator')
@@ -405,6 +407,13 @@ C
 
   describe('memoization', function () {
     it('caches a parser with an input', function () {
+      const log = []
+      const logger = {
+        log: function (message) {
+          log.push(message)
+        }
+      }
+
       const result = parse(`
 name
   | *:A '$1.join("")'
@@ -415,9 +424,10 @@ start
   | name then :B
   | name then :C
   ;
-      `, 'AAAC', { cache: true, debug: false })
+      `, 'AAAC', { cache: true, debug: true, logger })
 
       expect(result.succeeded).to.eq(true)
+      expect(log.join('')).to.have.entriesCount('[TOKEN A]: START', 4)
     })
   })
 
