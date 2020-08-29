@@ -1,7 +1,7 @@
 lex
   match  LEX_CLOSE      '/lex'
-  match  LEX_OPEN       /^lex\\s+/
-  match  MATCH          /^match\\s+/
+  match  LEX_OPEN       /^lex\s+/
+  match  MATCH          /^match\s+/
   match  IGNORE         'ignore'
   match  COLON          ':'
   match  SEMICOLON      ';'
@@ -17,7 +17,7 @@ lex
   match  CODE           /^'[^']*'/
   match  CODE           /^"[^"]*"/
   match  NAME           /^[a-zA-Z][a-zA-Z0-9_-]*/
-  ignore WHITESPACE     /^\\s+/
+  ignore WHITESPACE     /^\s+/
 /lex
 
 token-action

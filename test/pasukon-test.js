@@ -1,5 +1,5 @@
 const expect = require('chai').expect
-const pegjsParser = require('../lib/grammar.js')
+const pegjsParser = require('../lib/pegjs/grammar.js')
 const Pasukon = require('../lib/pasukon')
 const Lexer = require('./test-lexer')
 

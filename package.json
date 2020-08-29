@@ -23,7 +23,8 @@
   "scripts": {
     "test": "mocha **/*-test.js",
     "watch": "mocha --watch **/*-test.js",
-    "grammar": "pegjs -o lib/grammar.js lib/grammar.pegjs"
+    "grammar": "pegjs -o lib/grammar.js lib/grammar.pegjs",
+    "grammar-ast": "node lib/tasks/build-ast lib/grammar.pasukon"
   },
   "author": "Federico Ramirez",
   "license": "MIT"

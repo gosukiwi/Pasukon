@@ -1,11 +1,11 @@
-const grammar = require('../../lib/grammar')
+const selfparse = require('../../lib/self-parse')
 const expect = require('chai').expect
 const Lexer = require('../test-lexer')
 const Parser = require('../../lib/parsers/parser')
 const Evaluator = require('../../lib/parsers/evaluator')
 
 function parse (grammarString, input, options = {}) {
-  const definitions = grammar.parse(grammarString)
+  const definitions = selfparse(grammarString)
   const parser = new Parser(definitions, options)
   const lexer = new Lexer()
   return parser.parse(lexer.lex(input))
@@ -14,7 +14,7 @@ function parse (grammarString, input, options = {}) {
 describe('parsers/parser', function () {
   describe('unary call', function () {
     it('parses A', function () {
-      const definitions = grammar.parse(`
+      const definitions = selfparse(`
 statement
   | :A
   | :B
@@ -30,7 +30,7 @@ statement
     })
 
     it('parses B', function () {
-      const definitions = grammar.parse(`
+      const definitions = selfparse(`
 statement
   | :A
   | :B
@@ -46,7 +46,7 @@ statement
     })
 
     it('doesnt parse C', function () {
-      const definitions = grammar.parse(`
+      const definitions = selfparse(`
   statement
     | :A
     | :B
@@ -64,7 +64,7 @@ statement
 
   describe('binary call', function () {
     it('matches when it should', function () {
-      const definitions = grammar.parse(`
+      const definitions = selfparse(`
 statement
   | :A then :B
   ;
@@ -81,7 +81,7 @@ statement
 
   describe('rule call', function () {
     it('matches when it should', function () {
-      const definitions = grammar.parse(`
+      const definitions = selfparse(`
 statement
   | :A then :B
   ;
@@ -102,7 +102,7 @@ start
 
   describe('code eval', function () {
     it('evals with binary call', function () {
-      const definitions = grammar.parse(`
+      const definitions = selfparse(`
 statement
   | :A then :B '[$1, $2]'
   ;
@@ -118,7 +118,7 @@ statement
     })
 
     it('evals with unary call', function () {
-      const definitions = grammar.parse(`
+      const definitions = selfparse(`
 statement
   | many0 :A '$1.join("")'
   ;
@@ -134,7 +134,7 @@ statement
     })
 
     it('evals with rule call', function () {
-      const definitions = grammar.parse(`
+      const definitions = selfparse(`
 name
   | many0 :A '$1.join("")'
   ;
@@ -154,7 +154,7 @@ start
     })
 
     it('evals with long chain', function () {
-      const definitions = grammar.parse(`
+      const definitions = selfparse(`
 statement
   | (many0 (:A or :B)) then :C '$1.concat($2).join("")'
   ;
@@ -170,7 +170,7 @@ statement
     })
 
     it('collects values along rules', function () {
-      const definitions = grammar.parse(`
+      const definitions = selfparse(`
 name
   | many0 (:A or :B) '$$ = { type: "NAME", value: $1.join("") }'
   ;
@@ -193,7 +193,7 @@ statement
     })
 
     it('collects values when using ors', function () {
-      const definitions = grammar.parse(`
+      const definitions = selfparse(`
 name
   | many0 (:B or :C) '$$ = { type: "NAME", value: $1.join("") }'
   | many0 (:A or :B) '$$ = { type: "NAME", value: $1.join("") }'
@@ -211,7 +211,7 @@ name
     })
 
     it('collects nested', function () {
-      const definitions = grammar.parse(`
+      const definitions = selfparse(`
 name
   | :A then :B then :C '[$1].concat($2)'
   ;
@@ -227,7 +227,7 @@ name
     })
 
     it('works with a token', function () {
-      const definitions = grammar.parse(`
+      const definitions = selfparse(`
 name
   | :A '$$ = { name: $1 }'
   ;
@@ -243,7 +243,7 @@ name
     })
 
     it('can access attributes from outside', function () {
-      const definitions = grammar.parse(`
+      const definitions = selfparse(`
 name
   | :A '$.foo($1)'
   ;
@@ -260,7 +260,7 @@ name
     })
 
     it('can use names', function () {
-      const definitions = grammar.parse(`
+      const definitions = selfparse(`
 name
   | (:A as :first) then :B then (:C as :second) '[$first, $second]'
   ;
@@ -276,7 +276,7 @@ name
     })
 
     it('can use names, another example', function () {
-      const definitions = grammar.parse(`
+      const definitions = selfparse(`
 statement
   | (*(:A or :B) as :name) then :C '$$ = { name: $name.join(""), c: $2 }'
   ;
@@ -294,7 +294,7 @@ statement
 
   describe('shortcut syntax', function () {
     it('works with opt', function () {
-      const definitions = grammar.parse(`
+      const definitions = selfparse(`
 start
   | ?:A then :B
   ;
@@ -310,7 +310,7 @@ start
     })
 
     it('works with many1', function () {
-      const definitions = grammar.parse(`
+      const definitions = selfparse(`
 start
   | +:A
   ;
@@ -326,7 +326,7 @@ start
     })
 
     it('works with many0', function () {
-      const definitions = grammar.parse(`
+      const definitions = selfparse(`
 start
   | *:A then :B
   ;
@@ -343,7 +343,7 @@ start
   })
 
   it('complains of left recursion, single rule', function () {
-    const definitions = grammar.parse(`
+    const definitions = selfparse(`
 A
 | A then :b
 ;
@@ -353,7 +353,7 @@ A
   })
 
   it('complains of left recursion, two rules', function () {
-    const definitions = grammar.parse(`
+    const definitions = selfparse(`
 A
 | B
 ;
@@ -367,7 +367,7 @@ B
   })
 
   it('complains of left recursion, multiple rules', function () {
-    const definitions = grammar.parse(`
+    const definitions = selfparse(`
 A
 | B
 ;
@@ -385,7 +385,7 @@ C
   })
 
   it('complains of left recursion, multiple rules 2', function () {
-    const definitions = grammar.parse(`
+    const definitions = selfparse(`
 A
 | :B
 | B

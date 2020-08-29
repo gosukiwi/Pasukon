@@ -1,10 +1,10 @@
 const Lexer = require('../../lib/lexer/lexer')
-const grammar = require('../../lib/grammar')
+const selfparse = require('../../lib/self-parse')
 const expect = require('chai').expect
 
 describe('lexer/lexer', function () {
   it('scans literal', function () {
-    const definitions = grammar.parse(`
+    const definitions = selfparse(`
 lex
   match A 'A'
   match ASD /asd/
@@ -18,7 +18,7 @@ lex
   })
 
   it('can ignore tokens', function () {
-    const definitions = grammar.parse(`
+    const definitions = selfparse(`
 lex
   match  A 'A'
   ignore B 'B'
@@ -33,7 +33,7 @@ lex
   })
 
   it('saves positions', function () {
-    const definitions = grammar.parse(`
+    const definitions = selfparse(`
 lex
   match  A        'A'
   ignore NEWLINE  '\n'
@@ -55,7 +55,7 @@ lex
   })
 
   it('reports the position when failing', function () {
-    const definitions = grammar.parse(`
+    const definitions = selfparse(`
 lex
   match  A        'A'
 /lex

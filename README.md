@@ -1,7 +1,6 @@
 # Pasukon
 Pasukon generates parsers based on a relatively easy to learn grammar. It's
-based on parser combinators, and unlike other implementation, it uses a lexing
-step for performance reasons.
+based on parser combinators, and also implements a lexing step.
 
 It is highly extensible (you can make your own lexer and combinators), has no
 dependencies, and works on Node and Browser.
@@ -435,7 +434,7 @@ Luckly, it's very easy to toggle so once your grammar is done, try
 enabling/disabling it and see if you get any performance benefits.
 
 # Development
-Regenerate the PEGJS grammar with
+If you make changes to `./lib/grammar.pasukon`, rebuild the AST with
 
     npm run grammar
 
