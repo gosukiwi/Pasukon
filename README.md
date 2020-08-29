@@ -3,30 +3,22 @@ Pasukon generates parsers based on a relatively easy to learn grammar. It's
 based on parser combinators, and also implements a lexing step.
 
 It is highly extensible (you can make your own lexer and combinators), has no
-dependencies, and works on Node and Browser.
+external dependencies (only Node's crypto and stream APIs for caching). It works
+on Node and Browser.
 
 # Why
-I love [PEG.js](https://pegjs.org), but it's designed to be used for prototyping
-and, without caching, it really struggles to parse big grammars. Sometimes you
-can't use caching, particularly in indent-based grammars.
+Inspired by the awesome [PEGjs](https://pegjs.org), I decided to create a
+similar parser generator that can handle caching + indent-based grammars.
 
-[Jison](https://zaa.ch/jison/) is great, but the documentation is not that good
-and it's not easy to get started. Besides, it seems that it's not maintained
-anymore.
+Pasukon is designed to be simple to learn, use and extend. It uses parser
+combinators and is highly recursive. For that reason is not the fastest solution
+out there, but it's great for quickly putting a parser together and, unless the
+grammar is really big, it's fast enough.
 
-[Nearley](https://nearley.js.org/) looks like the most mature solution at the
-moment, but it's also not easy to get started.
-
-Pasukon covers a middle ground. It's designed to be simple to learn, use and
-extend. Not the fastest, but fast enough.
-
-The grammar has a few simple rules and everything is built upon that. There's no
-left-recursion elimination or operator precedence. Instead, you need to define
-rules in the proper order (like PEG parsers).
-
-It's like the _Go_ programming language in a sense. Simple. So simple it might
-make some things tricky. But when it's the right tool for the job, it sure is
-great.
+The grammar syntax is quite simplistic, it provides a few rules and everything
+is built upon that. There's no left-recursion elimination or operator
+precedence. Instead, you need to define rules in the proper order (like PEG
+parsers).
 
 # Concepts
 __Parser__: A function that takes an array of tokens as input and returns a
