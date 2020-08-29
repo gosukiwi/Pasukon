@@ -434,7 +434,8 @@ Luckly, it's very easy to toggle so once your grammar is done, try
 enabling/disabling it and see if you get any performance benefits.
 
 # Development
-If you make changes to `./lib/grammar.pasukon`, rebuild the AST with
+Remember to `npm install` before anything else. If you make changes to
+`./lib/grammar.pasukon`, rebuild the AST with
 
     npm run grammar
 
@@ -445,3 +446,7 @@ Run tests with
 Watch tests with
 
     npm run watch
+
+To build the browser distribution files, run
+
+    npx grunt
