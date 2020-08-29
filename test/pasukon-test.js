@@ -121,7 +121,7 @@ start
   ;
     `.trim()
 
-    const pasukon = new Pasukon(pasukonGrammar)
+    const pasukon = new Pasukon(pasukonGrammar, { cache: true })
     const result = pasukon.parse(pasukonGrammar)
     const pegjsResult = pegjsParser.parse(pasukonGrammar)
 
