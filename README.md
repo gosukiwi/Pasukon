@@ -449,4 +449,8 @@ Watch tests with
 
 To build the browser distribution files, run
 
-    npx grunt
+    npm run build
+
+To run the benchmark suite, run
+
+    npm run benchmark

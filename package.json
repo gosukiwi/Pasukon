@@ -9,6 +9,7 @@
   },
   "dependencies": {},
   "devDependencies": {
+    "benchmark": "^2.1.4",
     "chai": "^4.2.0",
     "eslint": "^7.7.0",
     "eslint-config-standard": "^14.1.1",
@@ -26,8 +27,10 @@
   "scripts": {
     "test": "mocha test/**/*-test.js",
     "watch": "mocha --watch test/**/*-test.js",
-    "grammar": "pegjs -o lib/grammar.js lib/grammar.pegjs",
-    "grammar-ast": "node lib/tasks/build-ast lib/grammar.pasukon"
+    "grammar-pegjs": "pegjs -o lib/pegjs/grammar.js lib/pegjs/grammar.pegjs",
+    "grammar": "node lib/tasks/build-ast lib/grammar.pasukon",
+    "benchmark": "node test/benchmarks/suite.js",
+    "build": "grunt"
   },
   "author": "Federico Ramirez",
   "license": "MIT"

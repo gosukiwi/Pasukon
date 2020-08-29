@@ -834,7 +834,7 @@ module.exports = function parse (input) {
     throw new Error(`Syntax error line ${line}, column ${col}. Expected EOF, found <TOKEN ${result.remaining.head.name}: ${result.remaining.head.match}>`)
   }
 
-  const mostAdvancedFailure = this.parser.getMostAdvancedFailure()
+  const mostAdvancedFailure = parser.getMostAdvancedFailure()
   const { line, col } = mostAdvancedFailure.remaining.head
   throw new Error(`Syntax error line ${line}, column ${col}. Expected '${mostAdvancedFailure.rule}', found <TOKEN ${mostAdvancedFailure.remaining.head.name}: ${mostAdvancedFailure.remaining.head.match}>`)
 }
