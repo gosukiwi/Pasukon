@@ -222,6 +222,11 @@ Only the outermost call evaluates the code. Binary calls populate two variables:
 `$1` and `$2`, which is the match of the left hand side and right hand side
 respectively. Unary or rule calls only populate `$1`.
 
+> __NOTE__ In the above code execution, the variable `$$` is arbitrary. Because
+> `eval` does not return a literal object, we need to wrap it in an assignment
+> in order for it to return. You could use any variable name you want in there.
+> By convention, `$$` is used.
+
 You can build up complex results from simple ones as such:
 
 ```

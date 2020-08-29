@@ -1,36 +1,3 @@
-const expect = require('chai').expect
-const pegjsParser = require('../lib/grammar.js')
-const Pasukon = require('../lib/pasukon')
-const Lexer = require('./test-lexer')
-
-describe('Pasukon', function () {
-  it('works with built-in lexer', function () {
-    const pasukon = new Pasukon(`
-lex
-  match A 'A'
-  match B 'B'
-/lex
-
-start
-  | :A then *:B then :A '$$ = [$1].concat($2[0]).concat($2[1])'
-  ;
-    `)
-
-    expect(pasukon.parse('ABBA')).to.eql(['A', 'B', 'B', 'A'])
-  })
-
-  it('works with custom lexer', function () {
-    const pasukon = new Pasukon(`
-start
-  | :A then *:B then :A '$$ = [$1].concat($2[0]).concat($2[1])'
-  ;
-    `, { lexer: new Lexer() })
-
-    expect(pasukon.parse('ABBA')).to.eql(['A', 'B', 'B', 'A'])
-  })
-
-  it('parses its own grammar syntax', function () {
-    const pasukonGrammar = `
 lex
   match  LEX_CLOSE      '/lex'
   match  LEX_OPEN       /^lex\\s+/
@@ -119,12 +86,3 @@ start
   | (lexer as :lexer) then (rules as :rules) '[$lexer].concat($rules)'
   | rules
   ;
-    `.trim()
-
-    const pasukon = new Pasukon(pasukonGrammar)
-    const result = pasukon.parse(pasukonGrammar)
-    const pegjsResult = pegjsParser.parse(pasukonGrammar)
-
-    expect(result).to.eql(pegjsResult)
-  })
-})

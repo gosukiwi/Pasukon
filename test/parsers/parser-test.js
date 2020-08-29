@@ -434,7 +434,7 @@ start
 
       expect(log.length).to.be.gt(0)
       expect(log).to.include('<RULE: start>: START')
-      expect(log).to.include('  [THEN [MANY0 [TOKEN-PARSER A]] [TOKEN-PARSER B]]: START')
+      expect(log).to.include('  [THEN [MANY0 [TOKEN A]] [TOKEN B]]: START')
       expect(log).to.include('<RULE: start>: OK')
     })
   })
