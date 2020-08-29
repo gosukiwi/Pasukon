@@ -104,7 +104,7 @@ start
     it('evals with binary call', function () {
       const definitions = selfparse(`
 statement
-  | :A then :B '[$1, $2]'
+  | :A then :B 'return [$1, $2]'
   ;
       `)
       const parser = new Parser(definitions)
@@ -120,7 +120,7 @@ statement
     it('evals with unary call', function () {
       const definitions = selfparse(`
 statement
-  | many0 :A '$1.join("")'
+  | many0 :A 'return $1.join("")'
   ;
       `)
       const parser = new Parser(definitions)
@@ -136,11 +136,11 @@ statement
     it('evals with rule call', function () {
       const definitions = selfparse(`
 name
-  | many0 :A '$1.join("")'
+  | many0 :A 'return $1.join("")'
   ;
 
 start
-  | name '$$ = { name: $1 }'
+  | name 'return { name: $1 }'
   ;
       `)
       const parser = new Parser(definitions)
@@ -156,7 +156,7 @@ start
     it('evals with long chain', function () {
       const definitions = selfparse(`
 statement
-  | (many0 (:A or :B)) then :C '$1.concat($2).join("")'
+  | (many0 (:A or :B)) then :C 'return $1.concat($2).join("")'
   ;
       `)
       const parser = new Parser(definitions)
@@ -172,11 +172,11 @@ statement
     it('collects values along rules', function () {
       const definitions = selfparse(`
 name
-  | many0 (:A or :B) '$$ = { type: "NAME", value: $1.join("") }'
+  | many0 (:A or :B) 'return { type: "NAME", value: $1.join("") }'
   ;
 
 statement
-  | name then :C '$$ = { type: "STATEMENT", name: $1, b: $2 }'
+  | name then :C 'return { type: "STATEMENT", name: $1, b: $2 }'
   ;
       `)
       const parser = new Parser(definitions)
@@ -195,8 +195,8 @@ statement
     it('collects values when using ors', function () {
       const definitions = selfparse(`
 name
-  | many0 (:B or :C) '$$ = { type: "NAME", value: $1.join("") }'
-  | many0 (:A or :B) '$$ = { type: "NAME", value: $1.join("") }'
+  | many0 (:B or :C) 'return { type: "NAME", value: $1.join("") }'
+  | many0 (:A or :B) 'return { type: "NAME", value: $1.join("") }'
   ;
       `)
       const parser = new Parser(definitions)
@@ -213,7 +213,7 @@ name
     it('collects nested', function () {
       const definitions = selfparse(`
 name
-  | :A then :B then :C '[$1].concat($2)'
+  | :A then :B then :C 'return [$1].concat($2)'
   ;
       `)
       const parser = new Parser(definitions)
@@ -229,7 +229,7 @@ name
     it('works with a token', function () {
       const definitions = selfparse(`
 name
-  | :A '$$ = { name: $1 }'
+  | :A 'return { name: $1 }'
   ;
       `)
       const parser = new Parser(definitions)
@@ -245,7 +245,7 @@ name
     it('can access attributes from outside', function () {
       const definitions = selfparse(`
 name
-  | :A '$.foo($1)'
+  | :A 'return $ctx.foo($1)'
   ;
       `)
       const parser = new Parser(definitions)
@@ -262,7 +262,7 @@ name
     it('can use names', function () {
       const definitions = selfparse(`
 name
-  | (:A as :first) then :B then (:C as :second) '[$first, $second]'
+  | (:A as :first) then :B then (:C as :second) 'return [$.first, $.second]'
   ;
       `)
       const parser = new Parser(definitions)
@@ -278,7 +278,7 @@ name
     it('can use names, another example', function () {
       const definitions = selfparse(`
 statement
-  | (*(:A or :B) as :name) then :C '$$ = { name: $name.join(""), c: $2 }'
+  | (*(:A or :B) as :name) then :C 'return { name: $.name.join(""), c: $2 }'
   ;
       `)
       const parser = new Parser(definitions)

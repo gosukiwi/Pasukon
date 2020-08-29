@@ -212,7 +212,7 @@ Rules can optionally evaluate some code:
 
 ```
 statement
-  | :A then ?(:B or :C) '$$ = { type: 'FOO', first: $1, second: $2 }'
+  | :A then ?(:B or :C) 'return { type: 'FOO', first: $1, second: $2 }'
   | :D
   ;
 ```
@@ -221,30 +221,27 @@ Only the outermost call evaluates the code. Binary calls populate two variables:
 `$1` and `$2`, which is the match of the left hand side and right hand side
 respectively. Unary or rule calls only populate `$1`.
 
-> __NOTE__ In the above code execution, the variable `$$` is arbitrary. Because
-> `eval` does not return a literal object, we need to wrap it in an assignment
-> in order for it to return. You could use any variable name you want in there.
-> By convention, `$$` is used.
-
 You can build up complex results from simple ones as such:
 
 ```
 name
-  | many0 (:A or :B) '$$ = { type: "NAME", value: $1.join("") }'
+  | many0 (:A or :B) 'return { type: "NAME", value: $1.join("") }'
   ;
 
 statement
-  | name then :C '$$ = { type: "STATEMENT", name: $1, c: $2 }'
+  | name then :C 'return { type: "STATEMENT", name: $1, c: $2 }'
   ;
 ```
 
+### Named Parameters
 To make things easier to manage, you can use the special `as` combinator, which
 takes a parser on the left hand side, and a token on the right hand side. Then
-it will __give you access to a variable of the same name__ when evaluating code:
+it will give you access to a variable of the same name when evaluating code. You
+can access it using `$.<my-name>`:
 
 ```
 statement
-  | (*(:A or :B) as :name) then :C '$$ = { type: "STATEMENT", name: $name.join(""), c: $2 }'
+  | (*(:A or :B) as :demo) then :C 'return { type: "STATEMENT", name: $.demo.join(""), c: $2 }'
   ;
 ```
 

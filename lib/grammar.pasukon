@@ -21,61 +21,61 @@ lex
 /lex
 
 token-action
-  | :MATCH '$1.trim()'
+  | :MATCH 'return $1.trim()'
   | :IGNORE
   ;
 
 token-matcher
   | :CODE
-  |> '$$ = { type: "TOKEN_MATCHER", match: $1.substring(1, $1.length - 1) }'
+  |> 'return { type: "TOKEN_MATCHER", match: $1.substring(1, $1.length - 1) }'
   | :REGEX_MATCHER
-  |> '$$ = { type: "TOKEN_REGEX_MATCHER", regex: $1.substring(1, $1.length - 1) }'
+  |> 'return { type: "TOKEN_REGEX_MATCHER", regex: $1.substring(1, $1.length - 1) }'
   ;
 
 token-definition
   | (token-action as :action) then (:NAME as :name) then (token-matcher as :matcher)
-  |> '$$ = { type: "TOKEN_DEFINITION", name: $name, matcher: $matcher, action: $action }'
+  |> 'return { type: "TOKEN_DEFINITION", name: $.name, matcher: $.matcher, action: $.action }'
   ;
 
 lexer
-  | :LEX_OPEN then (*token-definition as :tokens) then :LEX_CLOSE '$$ = { type: "LEXER", tokens: $tokens }'
+  | :LEX_OPEN then (*token-definition as :tokens) then :LEX_CLOSE 'return { type: "LEXER", tokens: $.tokens }'
   ;
 
 parser-name
   | :POPEN then (rule-expression as :expr) then :PCLOSE
-  |> '$expr'
+  |> 'return $.expr'
   | :QUESTION_MARK then (parser-name as :arg)
-  |> '$$ = { type: "UNARY_CALL", parser: "opt", arg: $arg }'
+  |> 'return { type: "UNARY_CALL", parser: "opt", arg: $.arg }'
   | :PLUS then (parser-name as :arg)
-  |> '$$ = { type: "UNARY_CALL", parser: "many1", arg: $arg }'
+  |> 'return { type: "UNARY_CALL", parser: "many1", arg: $.arg }'
   | :TIMES then (parser-name as :arg)
-  |> '$$ = { type: "UNARY_CALL", parser: "many0", arg: $arg }'
+  |> 'return { type: "UNARY_CALL", parser: "many0", arg: $.arg }'
   | :COLON then (parser-name as :arg)
-  |> '$$ = { type: "UNARY_CALL", parser: "token", arg: $arg }'
+  |> 'return { type: "UNARY_CALL", parser: "token", arg: $.arg }'
   | :NAME
-  |> '$$ = { type: "RULE_CALL", name: $1 }'
+  |> 'return { type: "RULE_CALL", name: $1 }'
   ;
 
 rule-expression
   | (parser-name as :lhs) then (:NAME as :parser) then (rule-expression as :rhs)
-  |> '$$ = { type: "BINARY_CALL", parser: $parser, lhs: $lhs, rhs: $rhs }'
+  |> 'return { type: "BINARY_CALL", parser: $.parser, lhs: $.lhs, rhs: $.rhs }'
   | (:NAME as :name) then (rule-expression as :arg)
-  |> '$$ = { type: "UNARY_CALL", parser: $name, arg: $arg }'
+  |> 'return { type: "UNARY_CALL", parser: $.name, arg: $.arg }'
   | parser-name
   ;
 
 rule-eval
-  | ?:PIPE_ARROW then (:CODE as :code) '$$ = $code.substring(1, $code.length - 1)'
+  | ?:PIPE_ARROW then (:CODE as :code) 'return $.code.substring(1, $.code.length - 1)'
   ;
 
 rule-definition
   | :PIPE then (rule-expression as :expr) then ?(rule-eval as :code)
-  |> '$code ? $expr.code = $code : null; $expr'
+  |> '$.code ? $.expr.code = $.code : null; return $.expr'
   ;
 
 rule
   | (:NAME as :name) then (+rule-definition as :definitions) then :SEMICOLON
-  |> '$$ = { type: "RULE", name: $name, definitions: $definitions }'
+  |> 'return { type: "RULE", name: $.name, definitions: $.definitions }'
   ;
 
 rules
@@ -83,6 +83,6 @@ rules
   ;
 
 start
-  | (lexer as :lexer) then (rules as :rules) '[$lexer].concat($rules)'
+  | (lexer as :lexer) then (rules as :rules) 'return [$.lexer].concat($.rules)'
   | rules
   ;
