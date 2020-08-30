@@ -451,25 +451,7 @@ module.exports = class LeftRecursionChecker {
 }
 
 },{"./token-parser":19}],15:[function(require,module,exports){
-let _memo = {}
-const memo = {
-  set (key, value) {
-    _memo[key] = value
-    return value
-  },
-
-  get (key) {
-    return _memo[key]
-  },
-
-  has (key) {
-    return Object.prototype.hasOwnProperty.call(_memo, key)
-  },
-
-  clear () {
-    _memo = {}
-  }
-}
+let memo = {}
 
 module.exports = class MemoizableParser {
   constructor (parser, cacheKey) {
@@ -478,11 +460,12 @@ module.exports = class MemoizableParser {
   }
 
   static clear () {
-    memo.clear()
+    memo = {}
   }
 
   parse (tokens) {
-    return this.getMemo(tokens) || this.setMemo(tokens, this.parser.parse(tokens))
+    const key = this.cacheKey ^ tokens.cacheKey
+    return memo[key] || (memo[key] = this.parser.parse(tokens))
   }
 
   getParsers () {
@@ -495,20 +478,6 @@ module.exports = class MemoizableParser {
 
   get tokenName () {
     return this.parser.tokenName
-  }
-
-  // private
-
-  hasMemo (tokens) {
-    return memo.has(`${this.cacheKey}-${tokens.cacheKey}`)
-  }
-
-  getMemo (tokens) {
-    return memo.get(`${this.cacheKey}-${tokens.cacheKey}`)
-  }
-
-  setMemo (tokens, value) {
-    return memo.set(`${this.cacheKey}-${tokens.cacheKey}`, value)
   }
 }
 

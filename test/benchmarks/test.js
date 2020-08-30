@@ -3,10 +3,10 @@ const suite = new Benchmark.Suite()
 
 suite
   .add('one', function () {
-    (new Function('a', 'b', 'return a + b'))(1, 1)
+    return 2 + 2
   })
-  .add('len', function () {
-    (function (a, b) { return a + b })(1, 1)
+  .add('two', function () {
+    return 2 + 2
   })
   .on('cycle', function (event) {
     console.log(String(event.target))
