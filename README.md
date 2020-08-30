@@ -47,23 +47,23 @@ lex
 /lex
 ```
 
-It supports two different matchers, the first one just compares by string using
-`startsWith`. The second uses regex, and matches the input against it. It
-returns  true only if the input starts with the given regex, that is, it has
-matched and the index is 0.
+It supports two different matchers, the first one is just a string comparison.
+The second uses regex, and matches the input against it. It returns true only
+if the input starts with the given regex, that is, it has matched and the index
+is 0.
 
 For performance reason, it's a good idea to start all regexes with `^` so the
 regex engine can stop as soon as possible.
 
 For more complex lexers, you can build your own. All it needs is an object that
-implements `lex(input)` and returns an array of `Token`.
+implements `*lex(input)` and returns an array of `Token`.
 
-The `Token` value object class lives in `lib/lexer/token` and it is really
-simple. It only implements an `is` method to compare it. Eg:
-`token.is('NEWLINE')`.
+Notice that `*lex` is a generator function that uses `yield` to return tokens in
+a lazy way.
 
-You can use your own `Token` implementation or the one provided by this library.
-Up to you.
+The `Token` value object class lives in `lib/lexer/token`. It implements an `is`
+method (eg: `token.is('NEWLINE')`), as well as `col` and `row` properties. You
+can use your own `Token` implementation or the one provided by this library.
 
 ## Grammar
 In it's simplest form, the grammar looks like this:
