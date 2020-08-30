@@ -4,7 +4,7 @@
   "description": "Not a pure parser combinator, as it requires a lexing step for performance reasons. But it does allow you to define a language by combining parsers.",
   "main": "index.js",
   "bin": {
-    "pasukon": "bin/cli.js"
+    "pasukon": "./bin/cli.js"
   },
   "directories": {
     "lib": "lib",

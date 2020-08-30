@@ -5,36 +5,62 @@ based on parser combinators, and also implements a lexing step.
 It is highly extensible (you can make your own lexer and combinators), has no
 external dependencies, and works in both Node.js and Browser.
 
-# Why
-Inspired by the awesome [PEGjs](https://pegjs.org), I decided to create a
-similar parser generator that can handle caching + indent-based grammars.
+# Install
 
-Pasukon is designed to be simple to learn, use and extend. It uses parser
-combinators and is highly recursive. For that reason is not the fastest solution
-out there, but it's great for quickly putting a parser together and, unless the
-grammar is really big, it's fast enough.
+    npm install -g pasukon
 
-The grammar syntax is quite simplistic, it provides a few rules and everything
-is built upon that. There's no left-recursion elimination or operator
-precedence. Instead, you need to define rules in the proper order (like PEG
-parsers).
+# Usage
+You can use Pasukon in several ways. The easiest is to give it a grammar as a
+string and let it do it's thing:
 
-# Concepts
-__Parser__: A function that takes an array of tokens as input and returns a
-`Result` object.
+```javascript
+const Pasukon = require('pasukon')
+const parser = new Pasukon(fs.readFileSync('my-grammar.pasukon').toString())
+parser.parse('hello, world!')
+```
 
-__Result__: An object that reports whether the match was successful or not. It
-exposes a `remaining` property with the remaining of the given input.
+To get the most out of Pasukon, though, you can pre-compile the grammar to
+enable optimizations:
 
-__Combinator__: Takes one or more parsers and returns a new parser, combining
-them in some way. For example, `then` takes two parsers and creates a new one,
-matching one, and then the other. `many0` takes one parser and matches it zero
-or more times.
+    pasukon my-grammar.pasukon grammar.js
+
+Then you can do:
+
+```javascript
+const grammar = require('grammar')
+const Pasukon = require('pasukon')
+const parser = new Pasukon(grammar)
+parser.parse('hello, world!')
+```
+
+You can also build a self-contained parser if you want:
+
+    pasukon standalone my-grammar.pasukon parser.js
+
+Then simply:
+
+```javascript
+const parser = require('parser')
+parser.parse('hello, world!')
+```
+
+## Options
+You can optionally pass `Pasukon` an options object:
+
+* `lexer`: An instance of a Lexer to be used by the parser. Default: `undefined`. If none specified, it will use the built-in lexer in the grammar.
+* `cache`: Boolean. Default: `false`. When `true`, it will cache the parsers results.
+* `start`: String. Default: `null`. When given, it will start the parsing process from the specified rule.
+* `debug`: Boolean. Default: `false`. When `true`, it will use the logger to log each parsing step.
+* `logger`: Default: `null`. If specified, it will use this logger when debugging. A logger only needs a `log(string)` method.
+
+```javascript
+const result = new Pasukon('...', { cache: true, start: 'some-rule' }).parse('input')
+```
 
 # Syntax
-Below is a cheatsheet of the syntax used to generate a parser:
+Pasukon syntax is rather simple. It's divided in two parts: Lexing and Parsing.
 
-## Lexer
+## Lexing
 Optionally, you can define a lexer inside a `lex`-`/lex` block. In the format
 `[match|ignore] <token-name> <matcher>`.
 
@@ -65,8 +91,8 @@ The `Token` value object class lives in `lib/lexer/token`. It implements an `is`
 method (eg: `token.is('NEWLINE')`), as well as `col` and `row` properties. You
 can use your own `Token` implementation or the one provided by this library.
 
-## Grammar
-In it's simplest form, the grammar looks like this:
+## Parsing
+The parsing part of the grammar is simply a set or rules:
 
 ```
 <rule-name>
@@ -236,6 +262,52 @@ statement
   ;
 ```
 
+### Using The Context
+You can add to the context in which the code in grammars get evaluated.
+
+```
+Evaluator.setContext({ foo: function () { return 2 } })
+const result = new Pasukon('grammar.g').parse('input')
+```
+
+You can then access the context using `$ctx`:
+
+```
+name
+  | :A 'return $ctx.foo($1)'
+  ;
+```
+
+The rule above will return `2` if it matches, because `$.foo` returns `2`. This
+is useful for building up AST nodes.
+
+Note that this __wont play nice with caching__ though, as the result of each
+parsing step is saved, so the code is executed only once. This might lead to
+some unexpected behavior.
+
+# Available Combinators
+Unary combinators: `many0`; `many1`; `opt` and `identity`.
+
+Binary combinators: `then`; `or`.
+
+# Adding Your Own
+You can add your own combinators as such:
+
+```javascript
+const Parser = require('pasukon').Parser
+const parser = new Parser(definitions)
+parser.addUnaryCombinator('combinatorName', MyCombinatorClass)
+parser.addBinaryCombinator('otherName', SomeBinaryCombinator)
+```
+
+TODO: Make this easier to do, shouldn't need to know the internals.
+
+Unary combinators take a single argument, a parser, in the constructor. Binary
+combinators take an array of two parsers.
+
+They must implement a `parse` method and return a `Result` object. You can see
+example combinators in `./lib/parsers/combinators`.
+
 ## Left Recursion
 You have to be careful when defining rules that they are not left-recursive.
 That means, a rule cannot match itself first. It needs to match other things
@@ -276,103 +348,6 @@ to do it:
 ```
 TODO
 ```
-
-# Programmatic Usage
-The basic usage is simply instantiating `Pasukon` with a grammar string as first
-argument, and an optional hash with options:
-
-```javascript
-const parser = new Pasukon('...', { debug: true })
-const result = parser.parse('some input')
-```
-
-Here's a more complete example:
-```javascript
-const result = new Pasukon(`
-lex
-  match A 'A'
-  match B 'B'
-/lex
-
-start
-  | :A or :B
-  ;
-`).parse('A')
-
-// More likely you'll read the grammar from a file
-const result = new Pasukon(fs.readFileSync('grammar.g')).parse('input')
-// Or if you want to use your own lexer
-const result = new Pasukon(fs.readFileSync('grammar.gs'), { lexer: new MyLexer() }).parse('input')
-```
-
-See [Lexer](#lexer) for more info on how the lexer works.
-
-## Options
-The options object can define:
-
-* `lexer`: An instance of a Lexer to be used by the parser. Default: `undefined`. If none specified, it will use the built-in lexer in the grammar.
-* `cache`: Boolean. Default: `false`. When `true`, it will cache the parsers results.
-* `start`: String. Default: `null`. When given, it will start the parsing process from the specified rule.
-* `debug`: Boolean. Default: `false`. When `true`, it will use the logger to log each parsing step.
-* `logger`: Default: `null`. If specified, it will use this logger when debugging. A logger only needs a `log(string)` method.
-
-```javascript
-const result = new Pasukon('...', { cache: true, start: 'some_rule' }).parse('input')
-```
-
-# [TODO] CLI Usage
-You can generate a pre-compiled grammar as such:
-
-    npx pasukon -o parser.js grammar.g
-
-That will generate a `parser.js` file that you can just use:
-
-```javascript
-const parser = require('parser')
-const result = parser.parse('my input')
-```
-
-## Using The Context
-You can add to the context in which the code in grammars get evaluated.
-
-```
-Evaluator.setContext({ foo: function () { return 2 } })
-const result = new Pasukon('grammar.g').parse('input')
-```
-
-You can then access the context using `$ctx`:
-
-```
-name
-  | :A 'return $ctx.foo($1)'
-  ;
-```
-
-The rule above will return `2` if it matches, because `$.foo` returns `2`. This
-is useful for building up AST nodes.
-
-# Available Combinators
-Unary combinators: `many0`; `many1`; `opt` and `identity`.
-
-Binary combinators: `then`; `or`.
-
-# Adding Your Own
-You can add your own combinators as such:
-
-```javascript
-const Parser = require('pasukon').Parser
-const parser = new Parser(definitions)
-parser.addUnaryCombinator('combinatorName', MyCombinatorClass)
-parser.addBinaryCombinator('otherName', SomeBinaryCombinator)
-```
-
-TODO: Make this easier to do, shouldn't need to know the internals.
-
-Unary combinators take a single argument, a parser, in the constructor. Binary
-combinators take an array of two parsers.
-
-They must implement a `parse` method and return a `Result` object. You can see
-example combinators in `./lib/parsers/combinators`.
 
 # Writing Efficient Parsers
 Each rule is executed from left to right, from top to bottom. If a particular
@@ -442,3 +417,14 @@ To build the browser distribution files, run
 To run the benchmark suite, run
 
     npm run benchmark
+
+# Why
+Pasukon is designed to be simple to learn, use and extend. Inspired by the
+awesome [PEGjs](https://pegjs.org), I decided to create a similar parser
+generator that can handle caching + indent-based grammars by implementing a
+lexing step.
+
+Pasukon's grammar syntax is quite simplistic, it provides a few rules and
+everything is built upon that. There's no left-recursion elimination or operator
+precedence. Instead, you need to define rules in the proper order (like PEG
+parsers).

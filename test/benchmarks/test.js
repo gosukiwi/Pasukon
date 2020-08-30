@@ -3,10 +3,13 @@ const suite = new Benchmark.Suite()
 
 suite
   .add('one', function () {
-    return 2 + 2
+    'some kind of long string but not so long'.charCodeAt(0) === 's'.charCodeAt(0)
   })
   .add('two', function () {
-    return 2 + 2
+    'some kind of long string but not so long'.charCodeAt(0) === 115
+  })
+  .add('three', function () {
+    'some kind of long string but not so long'[0] === 's'
   })
   .on('cycle', function (event) {
     console.log(String(event.target))
