@@ -14,7 +14,7 @@ lex
     const lexer = new Lexer(definitions[0].tokens)
     const tokens = lexer.lex('AasdA')
 
-    expect(tokens.map((t) => t.name)).to.eql(['A', 'ASD', 'A', 'EOF'])
+    expect([...tokens].map((t) => t.name)).to.eql(['A', 'ASD', 'A', 'EOF'])
   })
 
   it('can ignore tokens', function () {
@@ -29,7 +29,7 @@ lex
     const lexer = new Lexer(definitions[0].tokens)
     const tokens = lexer.lex('ABACCC')
 
-    expect(tokens.map((t) => t.name)).to.eql(['A', 'A', 'EOF'])
+    expect([...tokens].map((t) => t.name)).to.eql(['A', 'A', 'EOF'])
   })
 
   it('saves positions', function () {
@@ -42,7 +42,7 @@ lex
     `)
 
     const lexer = new Lexer(definitions[0].tokens)
-    const tokens = lexer.lex('AB\nBA\n\nA\n\nA')
+    const tokens = [...lexer.lex('AB\nBA\n\nA\n\nA')]
 
     expect(tokens[0].line).to.eq(1)
     expect(tokens[0].col).to.eq(1)
@@ -63,6 +63,6 @@ lex
 
     const lexer = new Lexer(definitions[0].tokens)
 
-    expect(() => lexer.lex('AAB')).to.throw(/at line 1, column 3/)
+    expect(() => [...lexer.lex('AAB')]).to.throw(/at line 1, column 3/)
   })
 })

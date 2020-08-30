@@ -13,17 +13,15 @@ module.exports = class Lexer {
     this.position = { col: 1, line: 1 }
   }
 
-  lex (input) {
-    const tokens = []
+  * lex (input) {
     while (input !== '') {
-      const [result, remaining] = this.lexOne(input)
-      if (result !== null) tokens.push(result)
+      const [token, remaining] = this.lexOne(input)
+      if (token !== null) yield token
       if (input === remaining) throw new Error(`Invalid token '${input[0]}' at line ${this.position.line}, column ${this.position.col}`)
       input = remaining
     }
 
-    tokens.push(new Token({ name: 'EOF', match: null, col: this.position.col, line: this.position.line }))
-    return tokens
+    yield new Token({ name: 'EOF', match: null, col: this.position.col, line: this.position.line })
   }
 
   // private
@@ -527,7 +525,10 @@ module.exports = class MemoizableParser {
 }
 
 },{}],16:[function(require,module,exports){
+const Lexer = require('../lexer/lexer')
+const TokenList = require('./token-list')
 const Token = require('./token-parser')
+const Result = require('./result')
 const Many0 = require('./combinators/many0')
 const Many1 = require('./combinators/many1')
 const Optional = require('./combinators/optional')
@@ -536,10 +537,8 @@ const Then = require('./combinators/then')
 const Identity = require('./combinators/identity')
 const As = require('./combinators/as')
 const LeftRecursionChecker = require('./left-recursion-checker')
-const TokenList = require('./token-list')
 const MemoizableParser = require('./memoizable-parser')
 const DebuggableParser = require('./debuggable-parser')
-const Result = require('./result')
 
 function hashCode (s) {
   for (var i = 0, h = 0; i < s.length; i++) {
@@ -553,7 +552,8 @@ const DEFAULT_OPTIONS = {
   start: null,
   cache: false,
   debug: false,
-  logger: null
+  logger: null,
+  lexer: null
 }
 
 module.exports = class Parser {
@@ -572,6 +572,10 @@ module.exports = class Parser {
     }
     this.parsers = {}
     this.options = Object.assign({}, DEFAULT_OPTIONS, options)
+
+    this.lexer = this.options.lexer || this.buildLexer(rules[0])
+    if (rules[0].type === 'LEXER') rules = rules.slice(1)
+
     const lastRule = this.buildRules(rules)
     this.start = this.options.start || lastRule
     if (this.start === null) throw new Error('No rules found')
@@ -579,13 +583,13 @@ module.exports = class Parser {
     new LeftRecursionChecker(this.parsers).check()
   }
 
-  parse (tokens) {
+  parse (input) {
     if (this.options.cache) MemoizableParser.clear()
     Result.clear()
 
     const parser = this.parsers[this.start]
     if (!parser) throw new Error(`Could not find starting parser: '${this.start}'`)
-    return parser.parse(new TokenList(tokens))
+    return parser.parse(new TokenList(this.lexer.lex(input)))
   }
 
   getMostAdvancedFailure () {
@@ -682,9 +686,14 @@ module.exports = class Parser {
 
     return final
   }
+
+  buildLexer (definition) {
+    if (definition === undefined || definition.type !== 'LEXER') throw new Error('Lexer was not defined in grammar. Define it or provide a custom lexer.')
+    return new Lexer(definition.tokens)
+  }
 }
 
-},{"./combinators/as":5,"./combinators/identity":6,"./combinators/many0":7,"./combinators/many1":8,"./combinators/optional":9,"./combinators/or":10,"./combinators/then":11,"./debuggable-parser":12,"./left-recursion-checker":14,"./memoizable-parser":15,"./result":17,"./token-list":18,"./token-parser":19}],17:[function(require,module,exports){
+},{"../lexer/lexer":3,"./combinators/as":5,"./combinators/identity":6,"./combinators/many0":7,"./combinators/many1":8,"./combinators/optional":9,"./combinators/or":10,"./combinators/then":11,"./debuggable-parser":12,"./left-recursion-checker":14,"./memoizable-parser":15,"./result":17,"./token-list":18,"./token-parser":19}],17:[function(require,module,exports){
 const TokenList = require('./token-list')
 
 let mostAdvancedFailure = null
@@ -713,7 +722,7 @@ module.exports = class Result {
   }
 
   static fail (remaining, rule) {
-    if (rule && (mostAdvancedFailure === null || mostAdvancedFailure.remaining.length > remaining.length)) { // record failure
+    if (rule && (mostAdvancedFailure === null || mostAdvancedFailure.remaining.index < remaining.index)) { // record failure
       mostAdvancedFailure = { remaining, rule }
     }
 
@@ -733,15 +742,14 @@ module.exports = class Result {
 let objectIdCounter = 0
 
 module.exports = class TokenList {
-  constructor (tokens) {
+  constructor (tokens, index) {
+    const next = tokens.next()
     this.tokens = tokens
-    this._head = tokens[0]
+    this.index = index || 0
+    this.head = next.value
+    this.isDone = next.done
     this._tail = null
     this.objectId = objectIdCounter++
-  }
-
-  get length () {
-    return this.tokens.length
   }
 
   peek (name) {
@@ -749,15 +757,11 @@ module.exports = class TokenList {
   }
 
   isEmpty () {
-    return this.tokens.length === 0
-  }
-
-  get head () {
-    return this._head
+    return this.done
   }
 
   get tail () {
-    if (this._tail === null) this._tail = new TokenList(this.tokens.slice(1))
+    if (this._tail === null) this._tail = new TokenList(this.tokens, this.index + 1)
     return this._tail
   }
 
@@ -795,23 +799,19 @@ module.exports = class Token {
 }
 
 },{"./evaluator":13,"./result":17}],20:[function(require,module,exports){
-const Lexer = require('./lexer/lexer')
 const Parser = require('./parsers/parser')
 const selfparse = require('./self-parse')
 
 module.exports = class Pasukon {
   constructor (grammar, options = {}) {
     const definitions = selfparse(grammar.toString())
-    this.lexer = options.lexer || this.buildLexer(definitions[0])
-
-    if (definitions[0].type === 'LEXER') definitions.shift()
     this.parser = new Parser(definitions, options)
   }
 
   parse (input) {
     if (!input) throw new Error('Input missing. Provide a string-able object.')
 
-    const result = this.parser.parse(this.lexer.lex(input.toString()))
+    const result = this.parser.parse(input.toString())
     if (result.succeeded) {
       if (result.remaining.isEmpty() || result.remaining.head.is('EOF')) return result.matched
       const { line, col } = result.remaining.head
@@ -822,26 +822,17 @@ module.exports = class Pasukon {
     const { line, col } = mostAdvancedFailure.remaining.head
     throw new Error(`Syntax error line ${line}, column ${col}. Expected '${mostAdvancedFailure.rule}', found <TOKEN ${mostAdvancedFailure.remaining.head.name}: ${mostAdvancedFailure.remaining.head.match}>`)
   }
-
-  // private
-
-  buildLexer (definition) {
-    if (definition === undefined || definition.type !== 'LEXER') throw new Error('Lexer was not defined in grammar. Define it or provide a custom lexer.')
-    return new Lexer(definition.tokens)
-  }
 }
 
-},{"./lexer/lexer":3,"./parsers/parser":16,"./self-parse":21}],21:[function(require,module,exports){
+},{"./parsers/parser":16,"./self-parse":21}],21:[function(require,module,exports){
 const ast = require('./grammar.json')
-const Lexer = require('./lexer/lexer')
 const Parser = require('./parsers/parser')
 
 // Returns a parser that is already pre-loaded with the pasukon grammar. Used
 // internally to match itself.
 module.exports = function parse (input) {
-  const lexer = new Lexer(ast[0].tokens)
-  const parser = new Parser(ast.slice(1))
-  const result = parser.parse(lexer.lex(input))
+  const parser = new Parser(ast)
+  const result = parser.parse(input)
 
   if (result.succeeded) {
     if (result.remaining.isEmpty() || result.remaining.head.is('EOF')) return result.matched
@@ -855,4 +846,4 @@ module.exports = function parse (input) {
   throw new Error(`Syntax error line ${line}, column ${col}. Expected '${mostAdvancedFailure.rule}', found <TOKEN ${mostAdvancedFailure.remaining.head.name}: ${mostAdvancedFailure.remaining.head.match}>`)
 }
 
-},{"./grammar.json":2,"./lexer/lexer":3,"./parsers/parser":16}]},{},[1]);
+},{"./grammar.json":2,"./parsers/parser":16}]},{},[1]);
