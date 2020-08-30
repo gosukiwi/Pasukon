@@ -42,7 +42,9 @@ module.exports = class Lexer {
           return [token, input.substring(match.length)]
         }
       } else if (matcher.type === 'TOKEN_REGEX_MATCHER') {
-        const result = this.getRegex(definition).exec(input)
+        let regex = definition.matcher.regex
+        regex = (typeof regex === 'object') ? regex : (regexCache[regex] || (regexCache[regex] = new RegExp(regex)))
+        const result = regex.exec(input)
         if (result !== null && result.index === 0) {
           const token = definition.action === 'match'
             ? new Token({ name: definition.name, match: result[0], col: this.col, line: this.line })
@@ -54,12 +56,6 @@ module.exports = class Lexer {
     }
 
     return [null, input]
-  }
-
-  getRegex (definition) {
-    const regex = definition.matcher.regex
-    if (typeof regex === 'object') return regex // it's precompiled
-    return regexCache[regex] || (regexCache[regex] = new RegExp(regex))
   }
 
   updatePosition (match) {
