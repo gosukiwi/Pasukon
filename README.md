@@ -33,17 +33,6 @@ const parser = new Pasukon(grammar)
 parser.parse('hello, world!')
 ```
 
-You can also build a self-contained parser if you want:
-
-    pasukon standalone my-grammar.pasukon parser.js
-
-Then simply:
-
-```javascript
-const parser = require('parser')
-parser.parse('hello, world!')
-```
-
 ## Options
 You can optionally pass `Pasukon` an options object:
 
@@ -54,7 +43,7 @@ You can optionally pass `Pasukon` an options object:
 * `logger`: Default: `null`. If specified, it will use this logger when debugging. A logger only needs a `log(string)` method.
 
 ```javascript
-const result = new Pasukon('...', { cache: true, start: 'some-rule' }).parse('input')
+const result = new Pasukon(grammar, { cache: true, start: 'some-rule' }).parse('input')
 ```
 
 # Syntax
