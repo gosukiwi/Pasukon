@@ -32,7 +32,7 @@ start
   })
 
   it('parses its own grammar syntax', function () {
-    const pasukonGrammar = fs.readFileSync(path.join(__dirname, '..', 'lib', 'grammar.pasukon'))
+    const pasukonGrammar = fs.readFileSync(path.join(__dirname, '..', 'lib', 'grammar.pasukon')).toString()
     const pasukon = new Pasukon(pasukonGrammar, { cache: true })
     const result = pasukon.parse(pasukonGrammar)
     const pegjsResult = pegjsParser.parse(pasukonGrammar.toString())

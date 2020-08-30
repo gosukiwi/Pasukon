@@ -2,12 +2,13 @@ const fs = require('fs')
 const path = require('path')
 const Benchmark = require('benchmark')
 const Pasukon = require('../../lib/pasukon')
-const pegjsParser = require('../../lib/pegjs/grammar.js')
+const pegjs = require('../../lib/pegjs/grammar.js')
 const grammar = fs.readFileSync(path.join(__dirname, '..', '..', 'lib', 'grammar.pasukon')).toString()
+const precompiled = require('../../lib/grammar')
 const suite = new Benchmark.Suite()
 
-const pasukon = new Pasukon(grammar, { cache: false })
-const pasukonWithCache = new Pasukon(grammar, { cache: true })
+const pasukon = new Pasukon(precompiled, { cache: false })
+const pasukonWithCache = new Pasukon(precompiled, { cache: true })
 // add tests
 suite
   .add('Pasukon', function () {
@@ -17,7 +18,7 @@ suite
     pasukonWithCache.parse(grammar)
   })
   .add('PEGjs', function () {
-    pegjsParser.parse(grammar)
+    pegjs.parse(grammar)
   })
   .on('cycle', function (event) {
     console.log(String(event.target))

@@ -119,7 +119,7 @@ A rule can be composed of any combination of those methods:
 
 ```
 program
-  | (many0 (token a) or (token b))
+  | many0 ((token a) or (token b))
   | (token a) or ((token b) or (token c))
   ;
 ```

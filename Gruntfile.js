@@ -4,22 +4,22 @@ module.exports = function (grunt) {
     browserify: {
       build: {
         src: 'lib/browser.js',
-        dest: 'dist/pasukon.dist.js'
+        dest: 'dist/pasukon.dist.js',
+        options: {
+          standalone: 'Pasukon'
+        }
       }
     },
-    'closure-compiler': {
+    terser: {
       build: {
         files: {
           'dist/pasukon.dist.min.js': 'dist/pasukon.dist.js'
-        },
-        options: {
-          compilation_level: 'ADVANCED'
         }
       }
     }
   })
 
-  require('google-closure-compiler').grunt(grunt)
+  grunt.loadNpmTasks('grunt-terser')
   grunt.loadNpmTasks('grunt-browserify')
-  grunt.registerTask('default', ['browserify', 'closure-compiler'])
+  grunt.registerTask('default', ['browserify', 'terser'])
 }

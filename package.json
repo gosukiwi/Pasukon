@@ -3,6 +3,9 @@
   "version": "1.0.0",
   "description": "Not a pure parser combinator, as it requires a lexing step for performance reasons. But it does allow you to define a language by combining parsers.",
   "main": "index.js",
+  "bin": {
+    "pasukon": "bin/cli.js"
+  },
   "directories": {
     "lib": "lib",
     "test": "test"
@@ -19,9 +22,9 @@
     "eslint-plugin-node": "^11.1.0",
     "eslint-plugin-promise": "^4.2.1",
     "eslint-plugin-standard": "^4.0.1",
-    "google-closure-compiler": "^20200719.0.0",
     "grunt": "^1.3.0",
     "grunt-browserify": "^5.3.0",
+    "grunt-terser": "^1.0.0",
     "mocha": "^8.1.2",
     "pegjs": "^0.10.0"
   },
