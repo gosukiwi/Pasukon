@@ -33,6 +33,23 @@ const parser = new Pasukon(grammar)
 parser.parse('hello, world!')
 ```
 
+If you are just using a browser, you can include the generated grammar like
+this:
+
+```html
+<script type="text/javascript" src="pasukon.dist.js"></script>
+<script type="text/javascript" src="grammar.js"></script>
+<script type="text/javascript">
+  // `Pasukon` and `grammar` are globals defined in `pasukon.dist.js` and
+  // `grammar.js` respectively
+  const pasukon = new Pasukon(grammar)
+  pasukon.parse('my input')
+</script>
+```
+
+For anything but trivial usage, it's recommended to bundle it with something
+like [Webpack](https://webpack.js.org/) or [Browserify](http://browserify.org/).
+
 ## Options
 You can optionally pass `Pasukon` an options object:
 

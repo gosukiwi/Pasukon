@@ -32,7 +32,7 @@
     "test": "mocha test/**/*-test.js",
     "watch": "mocha --watch test/**/*-test.js",
     "grammar-pegjs": "pegjs -o lib/pegjs/grammar.js lib/pegjs/grammar.pegjs",
-    "grammar": "node lib/tasks/build-ast lib/grammar.pasukon",
+    "grammar": "node bin/cli.js lib/grammar.pasukon lib/grammar.js",
     "benchmark": "node test/benchmarks/suite.js",
     "build": "grunt"
   },
