@@ -8,56 +8,44 @@ const Evaluator = require('../../lib/parsers/evaluator')
 
 function parse (grammarString, input, options = {}) {
   const definitions = selfparse(grammarString)
+  options.lexer = new Lexer()
   const parser = new Parser(definitions, options)
-  const lexer = new Lexer()
-  return parser.parse(lexer.lex(input))
+  return parser.parse(input)
 }
 
 describe('parsers/parser', function () {
   describe('unary call', function () {
     it('parses A', function () {
-      const definitions = selfparse(`
+      const result = parse(`
 statement
   | :A
   | :B
   ;
-      `)
-      const parser = new Parser(definitions)
-      const lexer = new Lexer()
-
-      const result = parser.parse(lexer.lex('A'))
+      `, 'A')
 
       expect(result.succeeded).to.eq(true)
       expect(result.remaining.peek('EOF')).to.eq(true)
     })
 
     it('parses B', function () {
-      const definitions = selfparse(`
+      const result = parse(`
 statement
   | :A
   | :B
   ;
-      `)
-      const parser = new Parser(definitions)
-      const lexer = new Lexer()
-
-      const result = parser.parse(lexer.lex('B'))
+      `, 'B')
 
       expect(result.succeeded).to.eq(true)
       expect(result.remaining.peek('EOF')).to.eq(true)
     })
 
     it('doesnt parse C', function () {
-      const definitions = selfparse(`
+      const result = parse(`
   statement
     | :A
     | :B
     ;
-      `)
-      const parser = new Parser(definitions)
-      const lexer = new Lexer()
-
-      const result = parser.parse(lexer.lex('C'))
+      `, 'C')
 
       expect(result.succeeded).to.eq(false)
       expect(result.remaining.peek('C')).to.eq(true)
@@ -66,15 +54,11 @@ statement
 
   describe('binary call', function () {
     it('matches when it should', function () {
-      const definitions = selfparse(`
+      const result = parse(`
 statement
   | :A then :B
   ;
-      `)
-      const parser = new Parser(definitions)
-      const lexer = new Lexer()
-
-      const result = parser.parse(lexer.lex('AB'))
+      `, 'AB')
 
       expect(result.succeeded).to.eq(true)
       expect(result.remaining.peek('EOF')).to.eq(true)
@@ -83,7 +67,7 @@ statement
 
   describe('rule call', function () {
     it('matches when it should', function () {
-      const definitions = selfparse(`
+      const result = parse(`
 statement
   | :A then :B
   ;
@@ -91,11 +75,7 @@ statement
 start
   | statement
   ;
-      `)
-      const parser = new Parser(definitions)
-      const lexer = new Lexer()
-
-      const result = parser.parse(lexer.lex('AB'))
+      `, 'AB')
 
       expect(result.succeeded).to.eq(true)
       expect(result.remaining.peek('EOF')).to.eq(true)
@@ -104,15 +84,11 @@ start
 
   describe('code eval', function () {
     it('evals with binary call', function () {
-      const definitions = selfparse(`
+      const result = parse(`
 statement
   | :A then :B 'return [$1, $2]'
   ;
-      `)
-      const parser = new Parser(definitions)
-      const lexer = new Lexer()
-
-      const result = parser.parse(lexer.lex('AB'))
+      `, 'AB')
 
       expect(result.succeeded).to.eq(true)
       expect(result.remaining.peek('EOF')).to.eq(true)
@@ -120,15 +96,11 @@ statement
     })
 
     it('evals with unary call', function () {
-      const definitions = selfparse(`
+      const result = parse(`
 statement
   | many0 :A 'return $1.join("")'
   ;
-      `)
-      const parser = new Parser(definitions)
-      const lexer = new Lexer()
-
-      const result = parser.parse(lexer.lex('AAA'))
+      `, 'AAA')
 
       expect(result.succeeded).to.eq(true)
       expect(result.remaining.peek('EOF')).to.eq(true)
@@ -136,7 +108,7 @@ statement
     })
 
     it('evals with rule call', function () {
-      const definitions = selfparse(`
+      const result = parse(`
 name
   | many0 :A 'return $1.join("")'
   ;
@@ -144,11 +116,7 @@ name
 start
   | name 'return { name: $1 }'
   ;
-      `)
-      const parser = new Parser(definitions)
-      const lexer = new Lexer()
-
-      const result = parser.parse(lexer.lex('AAA'))
+      `, 'AAA')
 
       expect(result.succeeded).to.eq(true)
       expect(result.remaining.peek('EOF')).to.eq(true)
@@ -156,15 +124,11 @@ start
     })
 
     it('evals with long chain', function () {
-      const definitions = selfparse(`
+      const result = parse(`
 statement
   | (many0 (:A or :B)) then :C 'return $1.concat($2).join("")'
   ;
-      `)
-      const parser = new Parser(definitions)
-      const lexer = new Lexer()
-
-      const result = parser.parse(lexer.lex('ABAC'))
+      `, 'ABAC')
 
       expect(result.succeeded).to.eq(true)
       expect(result.remaining.peek('EOF')).to.eq(true)
@@ -172,7 +136,7 @@ statement
     })
 
     it('collects values along rules', function () {
-      const definitions = selfparse(`
+      const result = parse(`
 name
   | many0 (:A or :B) 'return { type: "NAME", value: $1.join("") }'
   ;
@@ -180,11 +144,7 @@ name
 statement
   | name then :C 'return { type: "STATEMENT", name: $1, b: $2 }'
   ;
-      `)
-      const parser = new Parser(definitions)
-      const lexer = new Lexer()
-
-      const result = parser.parse(lexer.lex('ABBAC'))
+      `, 'ABBAC')
 
       expect(result.succeeded).to.eq(true)
       expect(result.remaining.peek('EOF')).to.eq(true)
@@ -195,16 +155,12 @@ statement
     })
 
     it('collects values when using ors', function () {
-      const definitions = selfparse(`
+      const result = parse(`
 name
   | many0 (:B or :C) 'return { type: "NAME", value: $1.join("") }'
   | many0 (:A or :B) 'return { type: "NAME", value: $1.join("") }'
   ;
-      `)
-      const parser = new Parser(definitions)
-      const lexer = new Lexer()
-
-      const result = parser.parse(lexer.lex('BBCCB'))
+      `, 'BBCCB')
 
       expect(result.succeeded).to.eq(true)
       expect(result.remaining.peek('EOF')).to.eq(true)
@@ -213,15 +169,11 @@ name
     })
 
     it('collects nested', function () {
-      const definitions = selfparse(`
+      const result = parse(`
 name
   | :A then :B then :C 'return [$1].concat($2)'
   ;
-      `)
-      const parser = new Parser(definitions)
-      const lexer = new Lexer()
-
-      const result = parser.parse(lexer.lex('ABC'))
+      `, 'ABC')
 
       expect(result.succeeded).to.eq(true)
       expect(result.remaining.peek('EOF')).to.eq(true)
@@ -229,32 +181,24 @@ name
     })
 
     it('works with a token', function () {
-      const definitions = selfparse(`
+      const result = parse(`
 name
   | :A 'return { name: $1 }'
   ;
-      `)
-      const parser = new Parser(definitions)
-      const lexer = new Lexer()
-
-      const result = parser.parse(lexer.lex('A'))
+      `, 'A')
 
       expect(result.succeeded).to.eq(true)
       expect(result.remaining.peek('EOF')).to.eq(true)
       expect(result.matched.name).to.eq('A')
     })
 
-    it('can access attributes from outside', function () {
-      const definitions = selfparse(`
+    it('can use context', function () {
+      Evaluator.setContext({ foo: function () { return 2 } })
+      const result = parse(`
 name
   | :A 'return $ctx.foo($1)'
   ;
-      `)
-      const parser = new Parser(definitions)
-      const lexer = new Lexer()
-
-      Evaluator.setContext({ foo: function () { return 2 } })
-      const result = parser.parse(lexer.lex('A'))
+      `, 'A')
 
       expect(result.succeeded).to.eq(true)
       expect(result.remaining.peek('EOF')).to.eq(true)
@@ -262,15 +206,11 @@ name
     })
 
     it('can use names', function () {
-      const definitions = selfparse(`
+      const result = parse(`
 name
   | (:A as :first) then :B then (:C as :second) 'return [$.first, $.second]'
   ;
-      `)
-      const parser = new Parser(definitions)
-      const lexer = new Lexer()
-
-      const result = parser.parse(lexer.lex('ABC'))
+      `, 'ABC')
 
       expect(result.succeeded).to.eq(true)
       expect(result.remaining.peek('EOF')).to.eq(true)
@@ -278,15 +218,11 @@ name
     })
 
     it('can use names, another example', function () {
-      const definitions = selfparse(`
+      const result = parse(`
 statement
   | (*(:A or :B) as :name) then :C 'return { name: $.name.join(""), c: $2 }'
   ;
-      `)
-      const parser = new Parser(definitions)
-      const lexer = new Lexer()
-
-      const result = parser.parse(lexer.lex('ABBAC'))
+      `, 'ABBAC')
 
       expect(result.succeeded).to.eq(true)
       expect(result.remaining.peek('EOF')).to.eq(true)
@@ -296,15 +232,11 @@ statement
 
   describe('shortcut syntax', function () {
     it('works with opt', function () {
-      const definitions = selfparse(`
+      const result = parse(`
 start
   | ?:A then :B
   ;
-      `)
-      const parser = new Parser(definitions)
-      const lexer = new Lexer()
-
-      const result = parser.parse(lexer.lex('B'))
+      `, 'B')
 
       expect(result.succeeded).to.eq(true)
       expect(result.remaining.peek('EOF')).to.eq(true)
@@ -312,15 +244,11 @@ start
     })
 
     it('works with many1', function () {
-      const definitions = selfparse(`
+      const result = parse(`
 start
   | +:A
   ;
-      `)
-      const parser = new Parser(definitions)
-      const lexer = new Lexer()
-
-      const result = parser.parse(lexer.lex('AAA'))
+      `, 'AAA')
 
       expect(result.succeeded).to.eq(true)
       expect(result.remaining.peek('EOF')).to.eq(true)
@@ -328,15 +256,11 @@ start
     })
 
     it('works with many0', function () {
-      const definitions = selfparse(`
+      const result = parse(`
 start
   | *:A then :B
   ;
-      `)
-      const parser = new Parser(definitions)
-      const lexer = new Lexer()
-
-      const result = parser.parse(lexer.lex('B'))
+      `, 'B')
 
       expect(result.succeeded).to.eq(true)
       expect(result.remaining.peek('EOF')).to.eq(true)
@@ -345,17 +269,15 @@ start
   })
 
   it('complains of left recursion, single rule', function () {
-    const definitions = selfparse(`
+    expect(() => parse(`
 A
 | A then :b
 ;
-    `)
-
-    expect(() => new Parser(definitions)).to.throw(/A -> A/)
+    `)).to.throw(/A -> A/)
   })
 
   it('complains of left recursion, two rules', function () {
-    const definitions = selfparse(`
+    expect(() => parse(`
 A
 | B
 ;
@@ -363,13 +285,11 @@ A
 B
 | A
 ;
-    `)
-
-    expect(() => new Parser(definitions)).to.throw(/A -> B -> A/)
+    `)).to.throw(/A -> B -> A/)
   })
 
   it('complains of left recursion, multiple rules', function () {
-    const definitions = selfparse(`
+    expect(() => parse(`
 A
 | B
 ;
@@ -381,13 +301,11 @@ B
 C
 | B
 ;
-    `)
-
-    expect(() => new Parser(definitions)).to.throw(/B -> C -> B/)
+    `)).to.throw(/B -> C -> B/)
   })
 
   it('complains of left recursion, multiple rules 2', function () {
-    const definitions = selfparse(`
+    expect(() => parse(`
 A
 | :B
 | B
@@ -400,9 +318,7 @@ B
 C
 | A
 ;
-    `)
-
-    expect(() => new Parser(definitions)).to.throw(/A -> B -> C -> A/)
+    `)).to.throw(/A -> B -> C -> A/)
   })
 
   describe('memoization', function () {
