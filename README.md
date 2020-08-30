@@ -33,8 +33,9 @@ const parser = new Pasukon(grammar)
 parser.parse('hello, world!')
 ```
 
-If you are just using a browser, you can include the generated grammar like
-this:
+## Browser Usage
+If you are just using a browser, you can use the
+[distributable](https://github.com/gosukiwi/Pasukon/tree/master/dist) build:
 
 ```html
 <script type="text/javascript" src="pasukon.dist.js"></script>
@@ -47,8 +48,9 @@ this:
 </script>
 ```
 
-For anything but trivial usage, it's recommended to bundle it with something
-like [Webpack](https://webpack.js.org/) or [Browserify](http://browserify.org/).
+For anything but trivial usage, it's recommended to use Pasukon with a module
+system. The most popular options at the moment are
+[Webpack](https://webpack.js.org/) and [Browserify](http://browserify.org/).
 
 ## Options
 You can optionally pass `Pasukon` an options object:
