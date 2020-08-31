@@ -70,7 +70,7 @@ rule-eval
 
 rule-definition
   | :PIPE then (rule-expression as :expr) then ?(rule-eval as :code)
-  |> 'let code = $.code, expr = $.expr; code ? expr.code = code : null; return expr'
+  |> '$.code ? $.expr.code = $.code : null; return $.expr'
   ;
 
 rule
