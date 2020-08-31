@@ -19,12 +19,12 @@ const parser = new Pasukon(fs.readFileSync('my-grammar.pasukon').toString())
 parser.parse('hello, world!')
 ```
 
-To get the most out of Pasukon, though, you can pre-compile the grammar to
-enable optimizations:
+To get the most out of Pasukon, though, consider compiling the grammar to enable
+several optimizations:
 
     pasukon my-grammar.pasukon grammar.js
 
-Then you can do:
+You can then load it as usual:
 
 ```javascript
 const grammar = require('grammar')

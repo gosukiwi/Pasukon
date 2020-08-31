@@ -1,15 +1,17 @@
 const Benchmark = require('benchmark')
 const suite = new Benchmark.Suite()
 
+const $ = {
+  code: 'asda asdasdasdasd',
+  expr: {}
+}
+
 suite
   .add('one', function () {
-    'some kind of long string but not so long'.charCodeAt(0) === 's'.charCodeAt(0)
+    if ($.code) { $.expr.code = $.code }; return $.expr
   })
   .add('two', function () {
-    'some kind of long string but not so long'.charCodeAt(0) === 115
-  })
-  .add('three', function () {
-    'some kind of long string but not so long'[0] === 's'
+    $.code ? $.expr.code = $.code : null; return $.expr
   })
   .on('cycle', function (event) {
     console.log(String(event.target))
