@@ -1,7 +1,7 @@
 {
   "name": "parser-combinator",
-  "version": "1.0.0",
-  "description": "Not a pure parser combinator, as it requires a lexing step for performance reasons. But it does allow you to define a language by combining parsers.",
+  "version": "0.0.1",
+  "description": "An easy parser generator for JavaScript, using parser combinators",
   "main": "index.js",
   "bin": {
     "pasukon": "./bin/cli.js"

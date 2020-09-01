@@ -1,26 +1,32 @@
 # Pasukon
-Pasukon generates parsers based on a relatively easy to learn grammar. It's
-based on parser combinators, and also implements a lexing step.
+Pasukon generates parsers using an easy to learn grammar. It's based on [parser
+combinators](https://en.wikipedia.org/wiki/Parser_combinator), and also
+implements a lexing step.
 
 It is highly extensible (you can make your own lexer and combinators), has no
 external dependencies, and works in both Node.js and Browser.
+
+## Try it online!
+By far the easiest way to get started is [using Pasukon's online
+editor](https://pasukon.rocks/#try-it). Check it out!
 
 # Install
 
     npm install -g pasukon
 
 # Usage
-You can use Pasukon in several ways. The easiest is to give it a grammar as a
-string and let it do it's thing:
+You can use Pasukon in several ways. The simplest one is to give it a grammar as
+a string:
 
 ```javascript
-const Pasukon = require('pasukon')
+const Pasukon = require('pasukon').Pasukon
 const parser = new Pasukon(fs.readFileSync('my-grammar.pasukon').toString())
 parser.parse('hello, world!')
 ```
 
 To get the most out of Pasukon, though, consider compiling the grammar to enable
-several optimizations:
+several optimizations. You can compile the grammar using the [online
+editor](https://pasukon.rocks/#try-it), or with the CLI:
 
     pasukon my-grammar.pasukon grammar.js
 
@@ -28,7 +34,7 @@ You can then load it as usual:
 
 ```javascript
 const grammar = require('grammar')
-const Pasukon = require('pasukon')
+const Pasukon = require('pasukon').Pasukon
 const parser = new Pasukon(grammar)
 parser.parse('hello, world!')
 ```
@@ -48,8 +54,8 @@ If you are just using a browser, you can use the
 </script>
 ```
 
-For anything but trivial usage, it's recommended to use Pasukon with a module
-system. The most popular options at the moment are
+For anything but trivial usage, it's recommended to use Pasukon from NPM with a
+module system. The most popular options at the moment are
 [Webpack](https://webpack.js.org/) and [Browserify](http://browserify.org/).
 
 ## Options
@@ -75,8 +81,9 @@ Optionally, you can define a lexer inside a `lex`-`/lex` block. In the format
 ```
 lex
   match  DEF        'def'
+  match  extend     "can also use double quotes"
   match  IDENTIFIER /^[a-zA-Z]/
-  match  NEWLINE    /^\n/
+  match  NEWLINE    {^\n/}
   ignore WHITESPACE /^[ \t\r]+/
 /lex
 ```
@@ -95,21 +102,26 @@ implements `*lex(input)` and returns an array of `Token`.
 Notice that `*lex` is a generator function that uses `yield` to return tokens in
 a lazy way.
 
-The `Token` value object class lives in `lib/lexer/token`. It implements an `is`
-method (eg: `token.is('NEWLINE')`), as well as `col` and `row` properties. You
-can use your own `Token` implementation or the one provided by this library.
+The [Token](https://github.com/gosukiwi/Pasukon/blob/master/lib/lexer/token.js)
+class lives in `lib/lexer/token`. It implements an `is` method (eg:
+`token.is('NEWLINE')`), a `toString` method -- used for error reporting, as well
+as `col` and `line` properties. You can use your own `Token` implementation or
+the one provided by Pasukon.
+
+> __TODO__: For more info on how to write a custom lexer, see the Wiki.
 
 ## Parsing
+For an in-depth documentation, check out the Wiki.
+
 The parsing part of the grammar is simply a set or rules:
 
 ```
 <rule-name>
   | <rule-body>
-  | <another-rule-body>
+  | <rule-body>
   ;
 ```
 
-Each rule returns a parser, which can be used by other rules and combinators.
 You can use the built-in `token` parser to match a single token:
 
 ```
@@ -162,7 +174,7 @@ Notice that no matter how nested it is, an outmost rule is always either in
 __unary__, __binary__, or __rule call__ format.
 
 Another important thing to note is the use parentheses. Binary combinators all
-have the same priority so they are always executed from left to right:
+have the same precedence, so they are always executed from left to right:
 
 ```
 program
@@ -177,7 +189,7 @@ always use them in non-trivial rules to make things clear.
 
 ## Syntactic Sugar 🍬
 The grammar syntax provides some sugar 🍬 to make things easier. The most common
-is `|`:
+is `|`, which is sugar for the `or` combinator:
 
 ```
 program
@@ -190,8 +202,8 @@ program
   ;
 ```
 
-Also, most built-in unary parsers have a _shortcut syntax_. For example, you can
-use `:` to use the token parser:
+All built-in unary parsers have a _shortcut syntax_. You can use `:` to call the
+token parser:
 
 ```
 program
@@ -200,8 +212,8 @@ program
   ;
 ```
 
-The shortcut syntax has high priority, so it can go anywhere and there's no need
-for parentheses:
+The shortcut syntax has high precedence, so it can go anywhere and there's no
+need for parentheses:
 
 ```
 program
@@ -210,7 +222,15 @@ program
   ;
 ```
 
-Below are all the unary parsers shortcuts:
+## Available Combinators
+
+* __many0__: Unary. Take a parser and match it zero or more times.
+* __many1__: Unary. Take a parser and match it one or more times.
+* __opt__: Unary. Take a parser and match it once. If it fails, report success.
+* __then__: Binary. Match the parser on the left. If it succeeds, match the one on the right.
+* __or__: Binary. Match the parser on the left. If it fails, try matching the one on the right.
+
+Shortcuts:
 
 * `*` for `many0`
 * `+` for `many1`
@@ -222,7 +242,7 @@ Putting it all together:
 ```
 statement
   | :A then ?(:B or :C)
-  | :D
+  | +:D
   ;
 
 statements
@@ -237,14 +257,14 @@ Rules can optionally evaluate some code:
 
 ```
 statement
-  | :A then ?(:B or :C) 'return { type: 'FOO', first: $1, second: $2 }'
+  | :A then ?(:B or :C)
+  |> 'return { type: 'FOO', first: $1, second: $2 }'
   | :D
   ;
 ```
 
-Only the outermost call evaluates the code. Binary calls populate two variables:
-`$1` and `$2`, which is the match of the left hand side and right hand side
-respectively. Unary or rule calls only populate `$1`.
+Only the outmost call evaluates the code. Binary calls populate two variables:
+`$1` and `$2`, while unary and rule calls only populate `$1`.
 
 You can build up complex results from simple ones as such:
 
@@ -260,18 +280,19 @@ statement
 
 ### Named Parameters
 To make things easier to manage, you can use the special `as` combinator, which
-takes a parser on the left hand side, and a token on the right hand side. Then
-it will give you access to a variable of the same name when evaluating code. You
-can access it using `$.<my-name>`:
+takes a parser on the left hand side, and an arbitrary name on the hand side.
+Then it will give you access to a variable of the same name when evaluating
+code. You can access it using `$.<my-name>`:
 
 ```
 statement
-  | (*(:A or :B) as :demo) then :C 'return { type: "STATEMENT", name: $.demo.join(""), c: $2 }'
+  | (*(:A or :B) as :demo) then :C
+  |> 'return { type: "STATEMENT", name: $.demo.join(""), c: $2 }'
   ;
 ```
 
-### Using The Context
-You can add to the context in which the code in grammars get evaluated.
+### Setting The Evaluation Context
+You can also set the context in which the code in grammars gets evaluated.
 
 ```
 Evaluator.setContext({ foo: function () { return 2 } })
@@ -286,35 +307,12 @@ name
   ;
 ```
 
-The rule above will return `2` if it matches, because `$.foo` returns `2`. This
-is useful for building up AST nodes.
+The rule above will return `2` if it matches, because `foo` returns `2`. This is
+useful for building up nodes in an Abstract Syntax Tree.
 
-Note that this __wont play nice with caching__ though, as the result of each
-parsing step is saved, so the code is executed only once. This might lead to
-some unexpected behavior.
-
-# Available Combinators
-Unary combinators: `many0`; `many1`; `opt` and `identity`.
-
-Binary combinators: `then`; `or`.
-
-# Adding Your Own
-You can add your own combinators as such:
-
-```javascript
-const Parser = require('pasukon').Parser
-const parser = new Parser(definitions)
-parser.addUnaryCombinator('combinatorName', MyCombinatorClass)
-parser.addBinaryCombinator('otherName', SomeBinaryCombinator)
-```
-
-TODO: Make this easier to do, shouldn't need to know the internals.
-
-Unary combinators take a single argument, a parser, in the constructor. Binary
-combinators take an array of two parsers.
-
-They must implement a `parse` method and return a `Result` object. You can see
-example combinators in `./lib/parsers/combinators`.
+Note that this __wont play nice with caching__ though. Because the result of
+each parsing step is memoized, the code is executed only once. This might lead
+to some unexpected behavior.
 
 ## Left Recursion
 You have to be careful when defining rules that they are not left-recursive.
@@ -348,14 +346,6 @@ RULE_B
 ```
 
 The parser will check for left-recursion and fail if it can find it.
-
-## Operator Precedence
-Say you want to match `+`, `-` first, then `*` and `/`. Here's an example on how
-to do it:
-
-```
-TODO
-```
 
 # Writing Efficient Parsers
 Each rule is executed from left to right, from top to bottom. If a particular
@@ -403,6 +393,21 @@ not.
 
 Luckly, it's very easy to toggle so once your grammar is done, try
 enabling/disabling it and see if you get any performance benefits.
+
+# WIP: Adding Your Own Combinators
+
+```javascript
+const Parser = require('pasukon').Parser
+const parser = new Parser(definitions)
+parser.addUnaryCombinator('combinatorName', MyCombinatorClass)
+parser.addBinaryCombinator('otherName', SomeBinaryCombinator)
+```
+
+Unary combinators take a single argument, a parser, in the constructor. Binary
+combinators take an array of two parsers.
+
+They must implement a `parse` method and return a `Result` object. You can see
+example combinators in `./lib/parsers/combinators`.
 
 # Development
 Remember to `npm install` before anything else. If you make changes to
