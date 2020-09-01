@@ -107,7 +107,6 @@ module.exports = class As {
     this.name = parsers[1].tokenName
     this.code = code
     this.rule = rule
-    this._cacheKey = null
   }
 
   parse (tokens) {
@@ -138,7 +137,6 @@ module.exports = class Identity {
     this._parser = null
     this.code = code
     this.rule = rule
-    this._cacheKey = null
   }
 
   parse (tokens) {
@@ -172,7 +170,6 @@ module.exports = class Many0 {
     this.parser = parser
     this.code = code
     this.rule = rule
-    this._cacheKey = null
   }
 
   parse (tokens) {
@@ -210,7 +207,6 @@ module.exports = class Many1 {
     this.parser = parser
     this.code = code
     this.rule = rule
-    this._cacheKey = null
   }
 
   parse (tokens) {
@@ -252,7 +248,6 @@ module.exports = class Optional {
     this.parser = parser
     this.code = code
     this.rule = rule
-    this._cacheKey = null
   }
 
   parse (tokens) {
@@ -279,7 +274,6 @@ module.exports = class Or {
     this.parsers = parsers
     this.code = code
     this.rule = rule
-    this._cacheKey = null
   }
 
   parse (tokens) {
@@ -316,7 +310,6 @@ module.exports = class Then {
     this.rhs = parsers[1]
     this.code = code
     this.rule = rule
-    this._cacheKey = null
   }
 
   parse (tokens) {
@@ -526,7 +519,8 @@ const DEFAULT_OPTIONS = {
   cache: false,
   debug: false,
   logger: null,
-  lexer: null
+  lexer: null,
+  combinators: {}
 }
 
 module.exports = class Parser {
@@ -549,6 +543,8 @@ module.exports = class Parser {
     this.lexer = this.options.lexer || this.buildLexer(rules[0])
     if (rules[0].type === 'LEXER') rules = rules.slice(1)
 
+    this.buildCustomCombinators()
+
     const lastRule = this.buildRules(rules)
     this.start = this.options.start || lastRule
     if (this.start === null) throw new Error('No rules found')
@@ -569,21 +565,28 @@ module.exports = class Parser {
     return Result.getMostAdvancedFailure()
   }
 
-  addBinaryCombinator (name, klass) {
-    if (!/[a-zA-Z][a-zA-Z0-9_-]*/.test(name)) throw new Error('Invalid name. It must start with a letter and only contain a-z, A-Z, 0-9, - and _.')
-
-    this.combinators.binary[name] = klass
-    return this
-  }
-
-  addUnaryCombinator (name, klass) {
-    if (!/[a-zA-Z][a-zA-Z0-9_-]*/.test(name)) throw new Error('Invalid name. It must start with a letter and only contain a-z, A-Z, 0-9, - and _.')
-
-    this.combinators.unary[name] = klass
-    return this
-  }
-
   // private
+
+  buildCustomCombinators () {
+    if (this.options.combinators.unary) {
+      Object.keys(this.options.combinators.unary).forEach((name) => {
+        this.addCombinator(name, this.options.combinators.unary[name], 'unary')
+      })
+    }
+
+    if (this.options.combinators.binary) {
+      Object.keys(this.options.combinators.binary).forEach((name) => {
+        this.addCombinator(name, this.options.combinators.binary[name], 'binary')
+      })
+    }
+  }
+
+  addCombinator (name, klass, mode) {
+    if (!/[a-zA-Z][a-zA-Z0-9_-]*/.test(name)) throw new Error('Invalid name. Combinators must start with a letter and only contain a-z, A-Z, 0-9, - and _')
+
+    this.combinators[mode][name] = klass
+    return this
+  }
 
   buildRules (rules) {
     let lastRule = null
@@ -771,12 +774,19 @@ module.exports = class Token {
 
 },{"./evaluator":13,"./result":17}],20:[function(require,module,exports){
 const Parser = require('./parsers/parser')
+const Evaluator = require('./parsers/evaluator')
 const selfparse = require('./self-parse')
 
 module.exports = class Pasukon {
   constructor (grammar, options = {}) {
+    if (!grammar) throw new Error('Please provide a grammar either as a string or a pre-compiled JavaScript object')
+
     const definitions = typeof grammar === 'string' ? selfparse(grammar) : grammar
     this.parser = new Parser(definitions, options)
+
+    if (options.context) {
+      Evaluator.setContext(options.context)
+    }
   }
 
   parse (input) {
@@ -795,7 +805,7 @@ module.exports = class Pasukon {
   }
 }
 
-},{"./parsers/parser":16,"./self-parse":21}],21:[function(require,module,exports){
+},{"./parsers/evaluator":13,"./parsers/parser":16,"./self-parse":21}],21:[function(require,module,exports){
 const ast = require('./grammar')
 const Parser = require('./parsers/parser')
 
