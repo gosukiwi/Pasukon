@@ -1,7 +1,8 @@
 {
-  "name": "parser-combinator",
+  "name": "pasukon",
   "version": "0.0.1",
   "description": "An easy parser generator for JavaScript, using parser combinators",
+  "repository": "https://github.com/gosukiwi/Pasukon",
   "main": "index.js",
   "bin": {
     "pasukon": "./bin/cli.js"
