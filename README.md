@@ -394,20 +394,69 @@ not.
 Luckly, it's very easy to toggle so once your grammar is done, try
 enabling/disabling it and see if you get any performance benefits.
 
-# WIP: Adding Your Own Combinators
+# Adding Your Own Combinators
 
 ```javascript
-const Parser = require('pasukon').Parser
-const parser = new Parser(definitions)
-parser.addUnaryCombinator('combinatorName', MyCombinatorClass)
-parser.addBinaryCombinator('otherName', SomeBinaryCombinator)
+const Pasukon = require('pasukon').Pasukon
+const parser = new Pasukon('...', {
+  combinators: {
+    binary: { 'my-combinator-name': MyBinaryCombinator },
+    unary: { 'another-name': MyUnaryCombinator }
+  }
+})
 ```
 
 Unary combinators take a single argument, a parser, in the constructor. Binary
 combinators take an array of two parsers.
 
-They must implement a `parse` method and return a `Result` object. You can see
-example combinators in `./lib/parsers/combinators`.
+They must implement a `parse` method and return a `Result` object. This is a
+demo binary combinator:
+
+```javascript
+class CustomThen extends BinaryCombinator {
+  parse (tokens) {
+    const lhs = this.parsers[0].parse(tokens)
+    if (lhs.failed) return lhs
+
+    const rhs = this.parsers[1].parse(lhs.remaining)
+    if (rhs.succeeded) {
+      rhs.matched = this.code ? this.eval(lhs.matched, rhs.matched) : [lhs.matched, rhs.matched]
+      return rhs
+    }
+
+    return this.fail(tokens)
+  }
+}
+```
+
+And this is a custom unary combinator:
+
+```javascript
+class CustomMany1 extends UnaryCombinator {
+  parse (tokens) {
+    if (tokens.isEmpty()) return this.fail(tokens)
+
+    let remaining = tokens
+    let matched = []
+    while (!remaining.isEmpty()) {
+      const result = this.parser.parse(remaining)
+      if (result.matched !== null) matched = matched.concat(result.matched)
+
+      if (result.failed) {
+        if (matched.length === 0) {
+          return this.fail(tokens)
+        } else {
+          return this.ok(remaining, this.code ? this.eval(matched) : matched)
+        }
+      }
+
+      remaining = result.remaining
+    }
+  }
+}
+```
+
+You can see example combinators in `./lib/parsers/combinators`.
 
 # Development
 Remember to `npm install` before anything else. If you make changes to
