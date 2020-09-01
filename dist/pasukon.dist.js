@@ -1,8 +1,9 @@
 (function(){function r(e,n,t){function o(i,f){if(!n[i]){if(!e[i]){var c="function"==typeof require&&require;if(!f&&c)return c(i,!0);if(u)return u(i,!0);var a=new Error("Cannot find module '"+i+"'");throw a.code="MODULE_NOT_FOUND",a}var p=n[i]={exports:{}};e[i][0].call(p.exports,function(r){var n=e[i][1][r];return o(n||r)},p,p.exports,r,e,n,t)}return n[i].exports}for(var u="function"==typeof require&&require,i=0;i<t.length;i++)o(t[i]);return o}return r})()({1:[function(require,module,exports){
-window.Pasukon = require('./pasukon')
+(function (global){
+global.Pasukon = require('./pasukon')
 
+}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 },{"./pasukon":20}],2:[function(require,module,exports){
-
 (function (root, factory) {
   if (typeof module === 'object') {
     module.exports = factory();
@@ -88,6 +89,10 @@ module.exports = class Token {
 
   is (name) {
     return this.name === name
+  }
+
+  toString () {
+    return `<TOKEN ${this.name}: '${this.match}'>`
   }
 }
 
@@ -781,12 +786,12 @@ module.exports = class Pasukon {
     if (result.succeeded) {
       if (result.remaining.isEmpty() || result.remaining.head.is('EOF')) return result.matched
       const { line, col } = result.remaining.head
-      throw new Error(`Syntax error line ${line}, column ${col}. Expected EOF, found <TOKEN ${result.remaining.head.name}: ${result.remaining.head.match}>`)
+      throw new Error(`Syntax error line ${line}, column ${col}. Expected EOF, found ${result.remaining.head}`)
     }
 
     const mostAdvancedFailure = this.parser.getMostAdvancedFailure()
     const { line, col } = mostAdvancedFailure.remaining.head
-    throw new Error(`Syntax error line ${line}, column ${col}. Expected '${mostAdvancedFailure.rule}', found <TOKEN ${mostAdvancedFailure.remaining.head.name}: ${mostAdvancedFailure.remaining.head.match}>`)
+    throw new Error(`Syntax error line ${line}, column ${col}. In rule '${mostAdvancedFailure.rule}', found ${mostAdvancedFailure.remaining.head}`)
   }
 }
 

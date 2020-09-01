@@ -39,4 +39,14 @@ start
 
     expect(result).to.eql(pegjsResult)
   })
+
+  it('show the token with error when failing', function () {
+    const pasukon = new Pasukon(`
+start
+  | :A then *:B then :A 'return [$1].concat($2[0]).concat($2[1])'
+  ;
+    `, { lexer: new Lexer() })
+
+    expect(() => pasukon.parse('C')).to.throw(/<TOKEN C: 'C'>/)
+  })
 })
