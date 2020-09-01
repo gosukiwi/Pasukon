@@ -109,4 +109,14 @@ start
 
     expect(pasukon.parse('AB')).to.eq('BA')
   })
+
+  it('can set the evaluation context', function () {
+    const pasukon = new Pasukon(`
+start
+  | :A then :B 'return $ctx.foo()'
+  ;
+    `, { lexer: new Lexer(), context: { foo: function () { return 2 } } })
+
+    expect(pasukon.parse('AB')).to.eq(2)
+  })
 })

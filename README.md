@@ -292,11 +292,15 @@ statement
 ```
 
 ### Setting The Evaluation Context
-You can also set the context in which the code in grammars gets evaluated.
+You can also set the context in which the code in grammars gets evaluated by
+passing a `context` option:
 
 ```
-Evaluator.setContext({ foo: function () { return 2 } })
-const result = new Pasukon('grammar.g').parse('input')
+const result = new Pasukon('grammar.g', {
+  context: {
+    foo: function () { return 2 }
+  }
+}).parse('input')
 ```
 
 You can then access the context using `$ctx`:
