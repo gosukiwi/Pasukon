@@ -66,6 +66,8 @@ You can optionally pass `Pasukon` an options object:
 * `start`: String. Default: `null`. When given, it will start the parsing process from the specified rule.
 * `debug`: Boolean. Default: `false`. When `true`, it will use the logger to log each parsing step.
 * `logger`: Default: `null`. If specified, it will use this logger when debugging. A logger only needs a `log(string)` method.
+* `combinators`: Default: `{}`. If specified, it will include the custom combinators given. For more info, see [Adding Your Own Combinators](#adding-your-own-combinators).
+* `context`: Default: `{}`. Sets the evaluation context. For more info, see [Setting The Evaluation Context](#setting-the-evaluation-context).
 
 ```javascript
 const result = new Pasukon(grammar, { cache: true, start: 'some-rule' }).parse('input')
