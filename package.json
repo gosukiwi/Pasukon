@@ -4,6 +4,7 @@
   "description": "An easy parser generator for JavaScript, using parser combinators",
   "repository": "https://github.com/gosukiwi/Pasukon",
   "main": "index.js",
+  "publishConfig": { "registry": "https://npm.pkg.github.com/" },
   "bin": {
     "pasukon": "./bin/cli.js"
   },
